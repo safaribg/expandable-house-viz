@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Bonded FRP panel profile candidates</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#0f141b;color:#edf2f7;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+  #view{position:fixed;inset:0;z-index:1;touch-action:none;cursor:grab}
+  #view.dragging{cursor:grabbing}
+  #hud{position:fixed;left:14px;top:14px;z-index:5;width:min(448px,calc(100vw - 28px));box-sizing:border-box;background:rgba(14,19,26,.92);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:12px;box-shadow:0 16px 40px rgba(0,0,0,.36);backdrop-filter:blur(8px)}
+  h1{font-size:16px;line-height:1.2;margin:0 0 10px;font-weight:750;letter-spacing:0}
+  #buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:10px}
+  button{appearance:none;border:1px solid rgba(255,255,255,.16);background:#252d37;color:#e9edf2;border-radius:6px;padding:8px 7px;font-size:12px;line-height:1.15;cursor:pointer;min-height:42px}
+  button.on{background:#1f6feb;border-color:#84b6ff;color:#fff}
+  #facts{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;line-height:1.28}
+  .fact{background:rgba(255,255,255,.06);border-radius:6px;padding:7px;min-height:34px}
+  .fact b{display:block;color:#fff;font-size:13px}
+  #note{font-size:12px;line-height:1.35;color:#c8d2df;margin-top:9px}
+  #legend{position:fixed;right:14px;bottom:14px;z-index:5;background:rgba(14,19,26,.92);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.5;max-width:390px;backdrop-filter:blur(8px)}
+  .sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:7px;vertical-align:-1px}
+  #scale{position:fixed;left:14px;bottom:14px;z-index:5;color:#b9c4d2;background:rgba(14,19,26,.82);border:1px solid rgba(255,255,255,.11);border-radius:8px;padding:8px 10px;font-size:12px}
+  @media(max-width:760px){
+    #hud{left:10px;top:10px;width:min(355px,calc(100vw - 20px));padding:10px}
+    #buttons{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+    button{font-size:11px;min-height:38px}
+    #facts{font-size:11px}
+    .fact b{font-size:12px}
+    #legend{left:10px;right:auto;bottom:10px;width:min(355px,calc(100vw - 20px));max-width:none;font-size:11px}
+    #scale{display:none}
+  }
+</style>
+</head>
+<body>
+<div id="hud">
+  <h1>Bonded 3 mm FRP Panel Candidates</h1>
+  <div id="buttons"></div>
+  <div id="facts"></div>
+  <div id="note"></div>
+</div>
+<div id="legend">
+  <div><span class="sw" style="background:#d93d35"></span>3 mm FRP sheet skins, top and bottom</div>
+  <div><span class="sw" style="background:#f3c344"></span>FRP profile flanges/caps</div>
+  <div><span class="sw" style="background:#58b7ff"></span>FRP profile webs</div>
+  <div>Drag to rotate X/Y. Shift-drag or right-drag rolls around Z. Wheel zooms.</div>
+</div>
+<div id="scale">Panel model: 1 m x 1 m, two 1 m profiles, 3 mm FRP sheet on each face.</div>
+<canvas id="view" aria-label="Animated 360 bonded FRP panel profile visualization"></canvas>
+<script>
+const PANEL=1000, SKIN=3;
+const candidates=[
+  {id:'C/G', label:'C/G baseline', size:'70 x 35', h:70, w:35, kg:1.388, panelKg:14.18, depth:76, ix:898.3, z:236.4,
+   note:'Current 70 x 35 baseline. Strong closed cap-cell, but the 3 mm skins already provide most panel stiffness.',
+   plates:capCell(70,35,5.8,2.2,2.2)},
+  {id:'U1', label:'U1 90 x 40 I', size:'90 x 40', h:90, w:40, kg:0.855, panelKg:13.11, depth:96, ix:1413.4, z:294.4,
+   note:'Best practical unrestricted target: lighter than C/G and much stiffer because the skins are farther apart.',
+   plates:iShape(90,40,3.0,2.5)},
+  {id:'U2', label:'U2 100 x 45 twin', size:'100 x 45', h:100, w:45, kg:1.299, panelKg:14.00, depth:106, ix:1779.8, z:335.8,
+   note:'Strongest balanced unrestricted target. Twin webs give better profile stability and screw/glue bearing than U1.',
+   plates:twinWeb(100,45,3.0,2.2)},
+  {id:'U3', label:'U3 120 x 40 I', size:'120 x 40', h:120, w:40, kg:0.954, panelKg:13.31, depth:126, ix:2490.9, z:395.4,
+   note:'Maximum stiffness option if thicker walls or roof panels are acceptable. Very efficient, but it increases panel depth.',
+   plates:iShape(120,40,3.0,2.3)},
+  {id:'L1', label:'L1 70 x 35 E', size:'70 x 35', h:70, w:35, kg:1.357, panelKg:14.11, depth:76, ix:899.1, z:236.6,
+   note:'Lightest closed 70 x 35 improvement. Requires supplier confidence in 2.0 mm webs and corners.',
+   plates:capCell(70,35,6.0,2.0,2.0)},
+  {id:'L2', label:'L2 70 x 35 H', size:'70 x 35', h:70, w:35, kg:1.384, panelKg:14.17, depth:76, ix:899.7, z:236.8,
+   note:'Safest 70 x 35 improvement. Very small gain, but less risky than 2.0 mm or 1.8 mm webs.',
+   plates:capCell(70,35,6.0,2.1,2.1)},
+  {id:'L3', label:'L3 70 x 35 thin', size:'70 x 35', h:70, w:35, kg:1.374, panelKg:14.15, depth:76, ix:904.0, z:237.9,
+   note:'Aggressive 70 x 35 sample only. 1.8 mm closed-cell webs need supplier samples and physical tests.',
+   plates:capCell(70,35,6.6,1.8,1.8)}
+];
+
+function capCell(h,w,cap,side,mid){
+  const clear=h-2*cap, midZ=cap+clear/2-mid/2;
+  return [
+    {role:'cap', y:-w/2, z:-h/2, d:w, t:cap, name:`bottom cap ${cap} mm`},
+    {role:'cap', y:-w/2, z:h/2-cap, d:w, t:cap, name:`top cap ${cap} mm`},
+    {role:'web', y:-w/2, z:-h/2+cap, d:side, t:clear, name:`side web ${side} mm`},
+    {role:'web', y:w/2-side, z:-h/2+cap, d:side, t:clear, name:`side web ${side} mm`},
+    {role:'web', y:-w/2+side, z:-h/2+midZ, d:w-2*side, t:mid, name:`mid-web ${mid} mm`}
+  ];
+}
+function iShape(h,w,cap,web){
+  return [
+    {role:'cap', y:-w/2, z:-h/2, d:w, t:cap, name:`bottom flange ${cap} mm`},
+    {role:'cap', y:-w/2, z:h/2-cap, d:w, t:cap, name:`top flange ${cap} mm`},
+    {role:'web', y:-web/2, z:-h/2+cap, d:web, t:h-2*cap, name:`center web ${web} mm`}
+  ];
+}
+function twinWeb(h,w,cap,web){
+  const gap=w*.42;
+  return [
+    {role:'cap', y:-w/2, z:-h/2, d:w, t:cap, name:`bottom flange ${cap} mm`},
+    {role:'cap', y:-w/2, z:h/2-cap, d:w, t:cap, name:`top flange ${cap} mm`},
+    {role:'web', y:-gap/2-web/2, z:-h/2+cap, d:web, t:h-2*cap, name:`left web ${web} mm`},
+    {role:'web', y:gap/2-web/2, z:-h/2+cap, d:web, t:h-2*cap, name:`right web ${web} mm`}
+  ];
+}
+
+const canvas=document.getElementById('view');
+const ctx=canvas.getContext('2d');
+let vw=0,vh=0,dpr=1,scale=0.72,userScaled=false;
+let rotX=-0.52,rotY=0.66,rotZ=-0.08;
+let dragging=false,lastX=0,lastY=0,dragMode='orbit',auto=true,lastTime=performance.now();
+let active=1;
+
+function resize(){
+  dpr=Math.min(devicePixelRatio||1,2);
+  vw=innerWidth; vh=innerHeight;
+  canvas.width=Math.floor(vw*dpr); canvas.height=Math.floor(vh*dpr);
+  canvas.style.width='100vw'; canvas.style.height='100vh';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  if(!userScaled) scale=vw<760?0.38:0.72;
+}
+function color(role){
+  if(role==='skin') return '#d93d35';
+  if(role==='web') return '#58b7ff';
+  return '#f3c344';
+}
+function shade(hex,f){
+  const n=parseInt(hex.slice(1),16);
+  const r=Math.max(0,Math.min(255,Math.round(((n>>16)&255)*f)));
+  const g=Math.max(0,Math.min(255,Math.round(((n>>8)&255)*f)));
+  const b=Math.max(0,Math.min(255,Math.round((n&255)*f)));
+  return `rgb(${r},${g},${b})`;
+}
+function rotatePoint(p){
+  let {x,y,z}=p;
+  const cx=Math.cos(rotX),sx=Math.sin(rotX),cy=Math.cos(rotY),sy=Math.sin(rotY),cz=Math.cos(rotZ),sz=Math.sin(rotZ);
+  let y1=y*cx-z*sx,z1=y*sx+z*cx; y=y1; z=z1;
+  let x2=x*cy+z*sy,z2=-x*sy+z*cy; x=x2; z=z2;
+  let x3=x*cz-y*sz,y3=x*sz+y*cz; x=x3; y=y3;
+  return {x,y,z};
+}
+function project(p){
+  const r=rotatePoint(p);
+  const dist=2100;
+  const persp=dist/(dist-r.z);
+  const cx=vw<760?vw*.55:vw*.58, cy=vh<760?vh*.58:vh*.55;
+  return {x:cx+r.x*scale*persp,y:cy-r.y*scale*persp,z:r.z,px:persp};
+}
+function normal(a,b,c){
+  const u={x:b.x-a.x,y:b.y-a.y,z:b.z-a.z},v={x:c.x-a.x,y:c.y-a.y,z:c.z-a.z};
+  return {x:u.y*v.z-u.z*v.y,y:u.z*v.x-u.x*v.z,z:u.x*v.y-u.y*v.x};
+}
+function face(points,fill,stroke,alpha=1,force=false){
+  const r=points.map(rotatePoint);
+  const n=normal(r[0],r[1],r[2]);
+  if(!force&&n.z<=-0.01) return null;
+  const light={x:-0.32,y:0.42,z:0.84};
+  const len=Math.hypot(n.x,n.y,n.z)||1;
+  const dot=Math.max(0,(n.x/len)*light.x+(n.y/len)*light.y+(n.z/len)*light.z);
+  const pts=points.map(project);
+  return {pts,depth:pts.reduce((s,p)=>s+p.z,0)/pts.length,fill,stroke,alpha,bright:.55+dot*.48};
+}
+function box(x0,x1,y0,y1,z0,z1,role,alpha=.96){
+  const c=color(role);
+  const p=[
+    {x:x0,y:y0,z:z0},{x:x1,y:y0,z:z0},{x:x1,y:y1,z:z0},{x:x0,y:y1,z:z0},
+    {x:x0,y:y0,z:z1},{x:x1,y:y0,z:z1},{x:x1,y:y1,z:z1},{x:x0,y:y1,z:z1}
+  ];
+  return [
+    face([p[0],p[1],p[2],p[3]],c,'rgba(20,24,30,.62)',alpha),
+    face([p[4],p[7],p[6],p[5]],c,'rgba(20,24,30,.62)',alpha),
+    face([p[0],p[4],p[5],p[1]],c,'rgba(20,24,30,.62)',alpha),
+    face([p[1],p[5],p[6],p[2]],c,'rgba(20,24,30,.62)',alpha),
+    face([p[2],p[6],p[7],p[3]],c,'rgba(20,24,30,.62)',alpha),
+    face([p[3],p[7],p[4],p[0]],c,'rgba(20,24,30,.62)',alpha)
+  ].filter(Boolean);
+}
+function modelFaces(c){
+  const zTop=c.h/2+SKIN, zBot=-c.h/2-SKIN;
+  const faces=[];
+  faces.push(...box(-PANEL/2,PANEL/2,-PANEL/2,PANEL/2,zTop-SKIN,zTop,'skin',.46));
+  faces.push(...box(-PANEL/2,PANEL/2,-PANEL/2,PANEL/2,zBot,zBot+SKIN,'skin',.34));
+  const yPositions=[-PANEL/2+c.w/2,PANEL/2-c.w/2];
+  for(const yBase of yPositions){
+    for(const p of c.plates){
+      faces.push(...box(-PANEL/2,PANEL/2,yBase+p.y,yBase+p.y+p.d,p.z,p.z+p.t,p.role,.96));
+    }
+  }
+  return faces.sort((a,b)=>a.depth-b.depth);
+}
+function drawModel(c){
+  for(const f of modelFaces(c)){
+    ctx.beginPath();
+    ctx.moveTo(f.pts[0].x,f.pts[0].y);
+    for(let i=1;i<f.pts.length;i++) ctx.lineTo(f.pts[i].x,f.pts[i].y);
+    ctx.closePath();
+    ctx.globalAlpha=f.alpha;
+    ctx.fillStyle=shade(f.fill,f.bright);
+    ctx.fill();
+    ctx.globalAlpha=1;
+    ctx.strokeStyle=f.stroke;
+    ctx.lineWidth=1.05;
+    ctx.stroke();
+  }
+  drawPanelEdges(c);
+}
+function drawPanelEdges(c){
+  const zTop=c.h/2+SKIN, zBot=-c.h/2-SKIN;
+  const corners=[
+    {x:-PANEL/2,y:-PANEL/2,z:zBot},{x:PANEL/2,y:-PANEL/2,z:zBot},{x:PANEL/2,y:PANEL/2,z:zBot},{x:-PANEL/2,y:PANEL/2,z:zBot},
+    {x:-PANEL/2,y:-PANEL/2,z:zTop},{x:PANEL/2,y:-PANEL/2,z:zTop},{x:PANEL/2,y:PANEL/2,z:zTop},{x:-PANEL/2,y:PANEL/2,z:zTop}
+  ].map(project);
+  ctx.strokeStyle='rgba(255,255,255,.62)';
+  ctx.lineWidth=1.4;
+  [[0,1,2,3,0],[4,5,6,7,4],[0,4],[1,5],[2,6],[3,7]].forEach(path=>{
+    ctx.beginPath(); ctx.moveTo(corners[path[0]].x,corners[path[0]].y);
+    for(let i=1;i<path.length;i++) ctx.lineTo(corners[path[i]].x,corners[path[i]].y);
+    ctx.stroke();
+  });
+}
+function drawGround(){
+  const y=vh*.79;
+  const g=ctx.createLinearGradient(0,y-150,0,vh);
+  g.addColorStop(0,'rgba(72,86,104,0)');
+  g.addColorStop(1,'rgba(72,86,104,.24)');
+  ctx.fillStyle=g; ctx.fillRect(0,y-150,vw,vh-y+150);
+}
+function roundRect(x,y,w,h,r){
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+function drawInset(c){
+  const panelW=vw<760?Math.min(282,vw-28):326, panelH=236;
+  const x=vw<760?14:vw-panelW-14, y=vw<760?vh-panelH-126:14;
+  roundRect(x,y,panelW,panelH,8);
+  ctx.fillStyle='rgba(14,19,26,.88)'; ctx.strokeStyle='rgba(255,255,255,.14)'; ctx.lineWidth=1; ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#edf2f7'; ctx.font='700 13px system-ui,-apple-system,Segoe UI,sans-serif'; ctx.textAlign='left'; ctx.fillText('Exact profile section',x+12,y+22);
+  const s=Math.min((panelW-104)/Math.max(70,c.w),(panelH-78)/(c.h+8));
+  const cx=x+panelW/2, cy=y+panelH/2+8;
+  ctx.fillStyle='#d93d35';
+  ctx.fillRect(cx-c.w*s/2,cy-(c.h/2+SKIN)*s,c.w*s,SKIN*s);
+  ctx.fillRect(cx-c.w*s/2,cy+(c.h/2)*s,c.w*s,SKIN*s);
+  for(const p of c.plates){
+    ctx.fillStyle=color(p.role);
+    ctx.strokeStyle='rgba(18,22,28,.86)';
+    const px=cx+p.y*s, py=cy-(p.z+p.t)*s;
+    ctx.fillRect(px,py,p.d*s,p.t*s);
+    ctx.strokeRect(px,py,p.d*s,p.t*s);
+  }
+  ctx.strokeStyle='rgba(255,255,255,.82)';
+  ctx.strokeRect(cx-c.w*s/2,cy-c.h*s/2,c.w*s,c.h*s);
+  ctx.fillStyle='#b9c4d2'; ctx.font='12px system-ui,-apple-system,Segoe UI,sans-serif'; ctx.textAlign='center';
+  ctx.fillText(`${c.size} mm profile, ${c.depth} mm total panel`,cx,y+panelH-15);
+}
+function drawTitle(c){
+  if(vw<760) return;
+  const x=vw*.58, y=vh*.17;
+  ctx.fillStyle='rgba(237,242,247,.96)';
+  ctx.font='700 24px system-ui,-apple-system,Segoe UI,sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText(`${c.id}: ${c.label}`,x,y);
+  ctx.fillStyle='rgba(185,196,210,.9)';
+  ctx.font='13px system-ui,-apple-system,Segoe UI,sans-serif';
+  ctx.fillText('Animated bonded skin panel, two 1 m profiles and red 3 mm skins',x,y+24);
+}
+function draw(){
+  ctx.clearRect(0,0,vw,vh);
+  const bg=ctx.createLinearGradient(0,0,vw,vh);
+  bg.addColorStop(0,'#0f141b'); bg.addColorStop(.55,'#18212b'); bg.addColorStop(1,'#232b35');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,vw,vh);
+  drawGround();
+  const c=candidates[active];
+  drawTitle(c);
+  drawModel(c);
+  drawInset(c);
+}
+function tick(now){
+  const dt=Math.min(.05,(now-lastTime)/1000); lastTime=now;
+  if(auto&&!dragging) rotY+=dt*.28;
+  draw(); requestAnimationFrame(tick);
+}
+function show(i){
+  active=i;
+  const c=candidates[i], base=candidates[0];
+  document.querySelectorAll('button').forEach((b,idx)=>b.classList.toggle('on',idx===i));
+  const mass=((c.panelKg/base.panelKg-1)*100).toFixed(1);
+  const stiff=((c.ix/base.ix-1)*100).toFixed(1);
+  document.getElementById('facts').innerHTML=[
+    ['Profile',`${c.size} mm, ${c.kg.toFixed(3)} kg/m`],
+    ['Panel mass',`${c.panelKg.toFixed(2)} kg/m2 (${mass}%)`],
+    ['Panel Ix',`${c.ix.toFixed(1)} cm4 (${stiff}%)`],
+    ['Total depth',`${c.depth} mm, Z ${c.z.toFixed(1)} cm3`]
+  ].map(([k,v])=>`<div class="fact"><b>${k}</b>${v}</div>`).join('');
+  document.getElementById('note').textContent=c.note;
+}
+const buttons=document.getElementById('buttons');
+candidates.forEach((c,i)=>{
+  const b=document.createElement('button');
+  b.textContent=c.label;
+  b.title=c.note;
+  b.addEventListener('click',()=>show(i));
+  buttons.appendChild(b);
+});
+canvas.addEventListener('pointerdown',e=>{
+  dragging=true; auto=false; dragMode=(e.shiftKey||e.button===2)?'roll':'orbit'; lastX=e.clientX; lastY=e.clientY;
+  canvas.classList.add('dragging'); canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove',e=>{
+  if(!dragging) return;
+  const dx=e.clientX-lastX,dy=e.clientY-lastY; lastX=e.clientX; lastY=e.clientY;
+  if(dragMode==='roll'||e.shiftKey) rotZ+=dx*.01;
+  else {rotY+=dx*.006; rotX+=dy*.006; rotX=Math.max(-Math.PI*.48,Math.min(Math.PI*.48,rotX));}
+});
+canvas.addEventListener('pointerup',()=>{dragging=false; canvas.classList.remove('dragging'); setTimeout(()=>{auto=true},1500)});
+canvas.addEventListener('pointercancel',()=>{dragging=false; canvas.classList.remove('dragging')});
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+canvas.addEventListener('wheel',e=>{e.preventDefault(); userScaled=true; scale*=e.deltaY>0?.92:1.08; scale=Math.max(.28,Math.min(1.25,scale));},{passive:false});
+addEventListener('resize',()=>{resize();draw()});
+resize(); show(1); requestAnimationFrame(tick);
+</script>
+</body>
+</html>

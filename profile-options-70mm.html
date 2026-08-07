@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>70 mm FRP profile optimization</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#10141a;color:#edf2f7;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+  #view{position:fixed;inset:0;z-index:1;touch-action:none;cursor:grab}
+  #view.dragging{cursor:grabbing}
+  #hud{position:fixed;left:14px;top:14px;z-index:5;width:min(430px,calc(100vw - 28px));background:rgba(15,19,25,.91);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:12px;box-sizing:border-box;box-shadow:0 14px 35px rgba(0,0,0,.34);backdrop-filter:blur(8px)}
+  h1{font-size:16px;line-height:1.2;margin:0 0 10px;font-weight:700;letter-spacing:0}
+  #buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:10px}
+  button{appearance:none;border:1px solid rgba(255,255,255,.16);background:#252c35;color:#e9edf2;border-radius:6px;padding:8px 7px;font-size:12px;line-height:1.15;cursor:pointer}
+  button.on{background:#1f6feb;border-color:#78a9ff;color:#fff}
+  #facts{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;line-height:1.3}
+  .fact{background:rgba(255,255,255,.06);border-radius:6px;padding:7px}
+  .fact b{display:block;color:#fff;font-size:13px}
+  #note{font-size:12px;line-height:1.35;color:#c8d2df;margin-top:9px}
+  #legend{position:fixed;right:14px;bottom:14px;z-index:5;background:rgba(15,19,25,.91);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.5;max-width:370px;backdrop-filter:blur(8px)}
+  .sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:7px;vertical-align:-1px}
+  #scale{position:fixed;left:14px;bottom:14px;z-index:5;color:#b9c4d2;background:rgba(15,19,25,.8);border:1px solid rgba(255,255,255,.11);border-radius:8px;padding:8px 10px;font-size:12px}
+  @media(max-width:760px){
+    #hud{top:10px;left:10px;right:auto;width:min(350px,calc(100vw - 20px))}
+    #buttons{grid-template-columns:repeat(2,minmax(0,1fr))}
+    #legend{left:10px;right:auto;bottom:10px;width:min(350px,calc(100vw - 20px));max-width:none;font-size:11px}
+    #scale{display:none}
+  }
+</style>
+</head>
+<body>
+<div id="hud">
+  <h1>70 mm FRP Profile Options</h1>
+  <div id="buttons"></div>
+  <div id="facts"></div>
+  <div id="note"></div>
+</div>
+<div id="legend">
+  <div><span class="sw" style="background:#f3c344"></span>FRP caps / side walls</div>
+  <div><span class="sw" style="background:#58b7ff"></span>internal web / cell divider</div>
+  <div><span class="sw" style="background:#f6f8fb"></span>open hollow cavity</div>
+  <div>Animated 360 view. Drag to rotate X/Y. Hold Shift while dragging, or use right-drag, to roll the profile. Wheel zooms.</div>
+</div>
+<div id="scale">Outer size: 70 mm high x 35 mm wide. Sample length: 300 mm.</div>
+<canvas id="view" aria-label="Animated 360 drawing of 70 mm FRP profile options"></canvas>
+<script>
+const LEN=300, H=70, W=35;
+const profiles=[
+  {id:'A', name:'A offered', short:'A 4.6/3.6', kg:1.444, area:760, ix:47.97, zx:13.71, iy:14.12,
+   note:"Strongest of Ivan's three offered sections for major-axis bending. Thick 4.6 mm caps do real work.",
+   plates:boxPlates(4.6,4.6,3.6)},
+  {id:'B', name:'B offered', short:'B 4.0 box', kg:1.474, area:776, ix:46.42, zx:13.26, iy:14.84,
+   note:'Heaviest offered option. Best weak-axis Iy, but worse than A in main bending despite more material.',
+   plates:boxPlates(4.0,4.0,4.0)},
+  {id:'C', name:'C offered', short:'C 3.5 + web', kg:1.463, area:770, ix:41.70, zx:11.92, iy:14.03,
+   note:'Double-cell stability is useful, but the thin 3.5 mm caps make it weakest in major-axis bending.',
+   plates:midWebPlates(3.5,3.5,3.5,3.0)},
+  {id:'D', name:'D proposed', short:'D 5.5/2.4', kg:1.407, area:741, ix:48.36, zx:13.82, iy:12.02,
+   note:'Recommended first custom die: lighter than all three offered options and slightly stronger than A in Ix/Zx.',
+   plates:midWebPlates(5.5,5.5,2.4,2.4)},
+  {id:'G', name:'G refined safe', short:'G 5.8/2.2', kg:1.388, area:730, ix:49.25, zx:14.07, iy:11.59,
+   note:'Safe D refinement: lighter than D and stronger in the main 70 mm bending direction without dropping to 2.0 mm webs.',
+   plates:midWebPlates(5.8,5.8,2.2,2.2)},
+  {id:'H', name:'H refined balanced', short:'H 6.0/2.1', kg:1.384, area:728, ix:49.97, zx:14.28, iy:11.40,
+   note:'Preferred refined target: best balance of lower mass, stronger caps, and less supplier risk than 2.0 mm webs.',
+   plates:midWebPlates(6.0,6.0,2.1,2.1)},
+  {id:'I', name:'I refined aggressive', short:'I 6.3/2.0', kg:1.392, area:733, ix:51.19, zx:14.63, iy:11.26,
+   note:'Aggressive strength target: strongest refined D option here, but 2.0 mm webs require supplier proof and testing.',
+   plates:midWebPlates(6.3,6.3,2.0,2.0)},
+  {id:'E', name:'E proposed', short:'E 6.0/2.0', kg:1.357, area:714, ix:49.64, zx:14.18, iy:11.11,
+   note:'Aggressive target: best stiffness and lowest mass, but 2.0 mm webs need supplier proof and physical tests.',
+   plates:midWebPlates(6.0,6.0,2.0,2.0)}
+];
+
+function boxPlates(tTop,tBottom,tSide){
+  const clear=H-tTop-tBottom;
+  return [
+    {role:'cap',x:0,y:H-tTop,w:W,h:tTop,label:`top cap ${tTop} mm`},
+    {role:'cap',x:0,y:0,w:W,h:tBottom,label:`bottom cap ${tBottom} mm`},
+    {role:'side',x:0,y:tBottom,w:tSide,h:clear,label:`side ${tSide} mm`},
+    {role:'side',x:W-tSide,y:tBottom,w:tSide,h:clear,label:`side ${tSide} mm`}
+  ];
+}
+function midWebPlates(tTop,tBottom,tSide,tMid){
+  const clear=H-tTop-tBottom;
+  const midY=tBottom+clear/2-tMid/2;
+  return [...boxPlates(tTop,tBottom,tSide),{role:'web',x:tSide,y:midY,w:W-2*tSide,h:tMid,label:`mid-web ${tMid} mm`}];
+}
+
+const canvas=document.getElementById('view');
+const ctx=canvas.getContext('2d');
+let active=3;
+let dpr=1, vw=0, vh=0, scale=2.35, userScaled=false;
+let rotX=-0.38, rotY=0.68, rotZ=-0.08;
+let dragging=false, lastX=0, lastY=0, dragMode='orbit', auto=true;
+let lastTime=performance.now();
+
+function resize(){
+  dpr=Math.min(devicePixelRatio||1,2);
+  vw=innerWidth;
+  vh=innerHeight;
+  canvas.width=Math.floor(vw*dpr);
+  canvas.height=Math.floor(vh*dpr);
+  canvas.style.width='100vw';
+  canvas.style.height='100vh';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  if(!userScaled) scale=vw<760?1.32:2.35;
+}
+
+function profileColor(role){
+  return role==='web'?'#58b7ff':'#f3c344';
+}
+function shade(hex,f){
+  const n=parseInt(hex.slice(1),16);
+  const r=Math.max(0,Math.min(255,Math.round(((n>>16)&255)*f)));
+  const g=Math.max(0,Math.min(255,Math.round(((n>>8)&255)*f)));
+  const b=Math.max(0,Math.min(255,Math.round((n&255)*f)));
+  return `rgb(${r},${g},${b})`;
+}
+function rgba(hex,a){
+  const n=parseInt(hex.slice(1),16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+
+function rotatePoint(p){
+  let {x,y,z}=p;
+  let cx=Math.cos(rotX), sx=Math.sin(rotX);
+  let cy=Math.cos(rotY), sy=Math.sin(rotY);
+  let cz=Math.cos(rotZ), sz=Math.sin(rotZ);
+  let y1=y*cx-z*sx, z1=y*sx+z*cx; y=y1; z=z1;
+  let x2=x*cy+z*sy, z2=-x*sy+z*cy; x=x2; z=z2;
+  let x3=x*cz-y*sz, y3=x*sz+y*cz; x=x3; y=y3;
+  return {x,y,z};
+}
+function project(p){
+  const r=rotatePoint(p);
+  const dist=620;
+  const persp=dist/(dist-r.z);
+  const cx=vw<760?vw*.52:vw*.57;
+  const cy=vh<760?vh*.56:vh*.53;
+  return {x:cx+r.x*scale*persp,y:cy-r.y*scale*persp,z:r.z,px:persp};
+}
+function normal(a,b,c){
+  const u={x:b.x-a.x,y:b.y-a.y,z:b.z-a.z};
+  const v={x:c.x-a.x,y:c.y-a.y,z:c.z-a.z};
+  return {x:u.y*v.z-u.z*v.y,y:u.z*v.x-u.x*v.z,z:u.x*v.y-u.y*v.x};
+}
+function face(points,fill,stroke,alpha=1){
+  const r=points.map(rotatePoint);
+  const n=normal(r[0],r[1],r[2]);
+  if(n.z<=-0.01) return null;
+  const light={x:-0.35,y:0.45,z:0.82};
+  const len=Math.hypot(n.x,n.y,n.z)||1;
+  const dot=Math.max(0,(n.x/len)*light.x+(n.y/len)*light.y+(n.z/len)*light.z);
+  const pts=points.map(project);
+  return {pts,depth:pts.reduce((s,p)=>s+p.z,0)/pts.length,fill,stroke,alpha,bright:.54+dot*.55};
+}
+function cuboid(x0,x1,y0,y1,z0,z1,role){
+  const c=profileColor(role);
+  const pts=[
+    {x:x0,y:y0,z:z0},{x:x1,y:y0,z:z0},{x:x1,y:y1,z:z0},{x:x0,y:y1,z:z0},
+    {x:x0,y:y0,z:z1},{x:x1,y:y0,z:z1},{x:x1,y:y1,z:z1},{x:x0,y:y1,z:z1}
+  ];
+  return [
+    face([pts[0],pts[1],pts[2],pts[3]],c,'rgba(22,25,30,.82)',.98),
+    face([pts[4],pts[7],pts[6],pts[5]],c,'rgba(22,25,30,.82)',.9),
+    face([pts[0],pts[4],pts[5],pts[1]],c,'rgba(22,25,30,.82)',.88),
+    face([pts[1],pts[5],pts[6],pts[2]],c,'rgba(22,25,30,.82)',.88),
+    face([pts[2],pts[6],pts[7],pts[3]],c,'rgba(22,25,30,.82)',.88),
+    face([pts[3],pts[7],pts[4],pts[0]],c,'rgba(22,25,30,.82)',.88)
+  ].filter(Boolean);
+}
+function modelFaces(profile){
+  const x0=-LEN/2, x1=LEN/2;
+  const faces=[];
+  for(const p of profile.plates){
+    const y0=p.x-W/2, y1=p.x+p.w-W/2;
+    const z0=p.y-H/2, z1=p.y+p.h-H/2;
+    faces.push(...cuboid(x0,x1,y0,y1,z0,z1,p.role));
+  }
+  return faces;
+}
+function drawModel(profile){
+  const faces=modelFaces(profile).sort((a,b)=>a.depth-b.depth);
+  for(const f of faces){
+    ctx.beginPath();
+    ctx.moveTo(f.pts[0].x,f.pts[0].y);
+    for(let i=1;i<f.pts.length;i++) ctx.lineTo(f.pts[i].x,f.pts[i].y);
+    ctx.closePath();
+    ctx.globalAlpha=f.alpha;
+    ctx.fillStyle=shade(f.fill,f.bright);
+    ctx.fill();
+    ctx.globalAlpha=1;
+    ctx.strokeStyle=f.stroke;
+    ctx.lineWidth=1.2;
+    ctx.stroke();
+  }
+  drawEndOutline();
+}
+function drawEndOutline(){
+  const corners=[
+    {x:-LEN/2,y:-W/2,z:-H/2},{x:-LEN/2,y:W/2,z:-H/2},
+    {x:-LEN/2,y:W/2,z:H/2},{x:-LEN/2,y:-W/2,z:H/2}
+  ].map(project);
+  ctx.strokeStyle='rgba(255,255,255,.9)';
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(corners[0].x,corners[0].y);
+  for(let i=1;i<corners.length;i++) ctx.lineTo(corners[i].x,corners[i].y);
+  ctx.closePath();
+  ctx.stroke();
+}
+
+function drawGround(){
+  const y=vh*.77;
+  const g=ctx.createLinearGradient(0,y-120,0,vh);
+  g.addColorStop(0,'rgba(73,86,102,0)');
+  g.addColorStop(1,'rgba(73,86,102,.26)');
+  ctx.fillStyle=g;
+  ctx.fillRect(0,y-120,vw,vh-y+120);
+  ctx.strokeStyle='rgba(154,176,199,.13)';
+  ctx.lineWidth=1;
+  for(let i=-14;i<=14;i++){
+    ctx.beginPath();
+    ctx.moveTo(vw*.18+i*34,y+80);
+    ctx.lineTo(vw*.78+i*58,y-110);
+    ctx.stroke();
+  }
+}
+function drawExactInset(profile){
+  const panelW=vw<760?Math.min(260,vw-28):300;
+  const panelH=210;
+  const x=vw<760?14:vw-panelW-14;
+  const y=vw<760?vh-panelH-138:14;
+  roundRect(x,y,panelW,panelH,8);
+  ctx.fillStyle='rgba(15,19,25,.87)';
+  ctx.strokeStyle='rgba(255,255,255,.14)';
+  ctx.lineWidth=1;
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle='#edf2f7';
+  ctx.font='700 13px system-ui,-apple-system,Segoe UI,sans-serif';
+  ctx.textAlign='left';
+  ctx.fillText('Exact end section',x+12,y+22);
+  const s=Math.min((panelW-94)/W,(panelH-78)/H);
+  const cx=x+panelW/2-6, cy=y+panelH/2+8;
+  drawSection(profile,cx,cy,s);
+  ctx.fillStyle='#b9c4d2';
+  ctx.font='12px system-ui,-apple-system,Segoe UI,sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('70 mm high x 35 mm wide',cx,y+panelH-14);
+}
+function drawSection(profile,cx,cy,s){
+  const left=cx-W*s/2, top=cy-H*s/2;
+  ctx.fillStyle='#f6f8fb';
+  ctx.strokeStyle='rgba(255,255,255,.75)';
+  ctx.lineWidth=1.5;
+  ctx.fillRect(left,top,W*s,H*s);
+  ctx.strokeRect(left,top,W*s,H*s);
+  for(const p of profile.plates){
+    const px=left+p.x*s;
+    const py=top+(H-p.y-p.h)*s;
+    ctx.fillStyle=profileColor(p.role);
+    ctx.fillRect(px,py,p.w*s,p.h*s);
+    ctx.strokeStyle='rgba(18,22,28,.82)';
+    ctx.lineWidth=1;
+    ctx.strokeRect(px,py,p.w*s,p.h*s);
+  }
+  ctx.strokeStyle='rgba(255,255,255,.86)';
+  ctx.lineWidth=1.5;
+  ctx.strokeRect(left,top,W*s,H*s);
+  ctx.fillStyle='#cdd7e3';
+  ctx.font='11px system-ui,-apple-system,Segoe UI,sans-serif';
+  ctx.textAlign='center';
+  const cap=profile.plates.find(p=>p.role==='cap'&&p.y>H/2);
+  const side=profile.plates.find(p=>p.role==='side');
+  const web=profile.plates.find(p=>p.role==='web');
+  ctx.fillText(`${cap.h} mm caps`,cx,top-8);
+  ctx.fillText(`${side.w} mm sides`,left-31,cy);
+  if(web) ctx.fillText(`${web.h} mm web`,cx,cy+4);
+}
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function drawTitle(profile){
+  if(vw<760) return;
+  const x=vw<760?vw*.5:vw*.58;
+  const y=vh<760?Math.max(292,vh*.24):vh*.17;
+  ctx.fillStyle='rgba(237,242,247,.96)';
+  ctx.font=`700 ${vw<760?18:24}px system-ui,-apple-system,Segoe UI,sans-serif`;
+  ctx.textAlign='center';
+  ctx.fillText(`${profile.id}: ${profile.name}`,x,y);
+  ctx.fillStyle='rgba(185,196,210,.9)';
+  ctx.font='13px system-ui,-apple-system,Segoe UI,sans-serif';
+  ctx.fillText('Self-contained animated 360 profile model',x,y+24);
+}
+function draw(){
+  ctx.clearRect(0,0,vw,vh);
+  const bg=ctx.createLinearGradient(0,0,vw,vh);
+  bg.addColorStop(0,'#10141a');
+  bg.addColorStop(.55,'#18202a');
+  bg.addColorStop(1,'#222a35');
+  ctx.fillStyle=bg;
+  ctx.fillRect(0,0,vw,vh);
+  drawGround();
+  const profile=profiles[active];
+  drawTitle(profile);
+  drawModel(profile);
+  drawExactInset(profile);
+}
+function tick(now){
+  const dt=Math.min(0.05,(now-lastTime)/1000);
+  lastTime=now;
+  if(auto&&!dragging) rotY+=dt*.36;
+  draw();
+  requestAnimationFrame(tick);
+}
+function showProfile(i){
+  const p=profiles[i];
+  active=i;
+  document.querySelectorAll('button').forEach((b,idx)=>b.classList.toggle('on',idx===i));
+  document.getElementById('facts').innerHTML=[
+    ['Mass',`${p.kg.toFixed(3)} kg/m`],
+    ['Area',`${p.area} mm2`],
+    ['Ix / Zx',`${p.ix.toFixed(2)} cm4 / ${p.zx.toFixed(2)} cm3`],
+    ['Iy',`${p.iy.toFixed(2)} cm4`]
+  ].map(([k,v])=>`<div class="fact"><b>${k}</b>${v}</div>`).join('');
+  document.getElementById('note').textContent=p.note;
+}
+
+const buttons=document.getElementById('buttons');
+profiles.forEach((p,i)=>{
+  const b=document.createElement('button');
+  b.textContent=p.short;
+  b.title=p.name;
+  b.addEventListener('click',()=>showProfile(i));
+  buttons.appendChild(b);
+});
+canvas.addEventListener('pointerdown',e=>{
+  dragging=true;
+  auto=false;
+  dragMode=(e.shiftKey||e.button===2)?'roll':'orbit';
+  lastX=e.clientX;
+  lastY=e.clientY;
+  canvas.classList.add('dragging');
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove',e=>{
+  if(!dragging) return;
+  const dx=e.clientX-lastX, dy=e.clientY-lastY;
+  lastX=e.clientX;
+  lastY=e.clientY;
+  if(dragMode==='roll'||e.shiftKey){
+    rotZ+=dx*.01;
+  }else{
+    rotY+=dx*.008;
+    rotX+=dy*.008;
+    rotX=Math.max(-Math.PI*.48,Math.min(Math.PI*.48,rotX));
+  }
+});
+canvas.addEventListener('pointerup',e=>{
+  dragging=false;
+  canvas.classList.remove('dragging');
+  setTimeout(()=>{auto=true},1500);
+});
+canvas.addEventListener('pointercancel',()=>{dragging=false;canvas.classList.remove('dragging')});
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+canvas.addEventListener('wheel',e=>{
+  e.preventDefault();
+  userScaled=true;
+  scale*=e.deltaY>0?.92:1.08;
+  scale=Math.max(1.2,Math.min(4.4,scale));
+},{passive:false});
+addEventListener('resize',()=>{resize();draw()});
+resize();
+showProfile(3);
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>

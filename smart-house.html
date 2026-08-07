@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>SMART HOUSE - folding construction review</title>
+<style>
+  body{margin:0;overflow:hidden;font-family:system-ui,sans-serif;background:#1a1d21}
+  #ui{position:fixed;top:12px;left:12px;z-index:10;color:#eee;background:rgba(0,0,0,.45);
+      padding:10px 14px;border-radius:8px;max-width:340px}
+  #ui button{margin:0 6px 8px 0;padding:8px 14px;border:0;border-radius:6px;cursor:pointer;
+    background:#2e3440;color:#eee;font-size:14px}
+  #ui button.on{background:#3a7bd5}
+  #slider{width:300px}
+  #stage{font-size:12px;color:#9fb3c8;margin-top:4px}
+  #legend{position:fixed;bottom:12px;left:12px;color:#ddd;font-size:12px;line-height:1.65;
+    background:rgba(0,0,0,.45);padding:10px 14px;border-radius:8px}
+  #sectionDetail{position:fixed;right:12px;bottom:12px;z-index:10;color:#ddd;background:rgba(0,0,0,.48);
+    padding:10px 12px;border-radius:8px;width:310px;font-size:12px;line-height:1.35}
+  #sectionDetail svg{display:block;width:100%;height:auto;margin:4px 0 6px}
+  #sectionDetail b{color:#fff}
+  .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  #title{position:fixed;top:12px;right:16px;color:#9fb3c8;font-size:13px;text-align:right}
+</style>
+</head>
+<body>
+<div id="ui">
+  <button id="bFrame" class="on">Profiles</button>
+  <button id="bSkins">+ FRP sheets</button>
+  <button id="bRot">⟳</button><br>
+  <button id="bUnfold">▶ Unfold</button>
+  <button id="bFold">◀ Fold</button><br>
+  <input type="range" id="slider" min="0" max="1000" value="0">
+  <div id="stage">Folded for transport</div>
+</div>
+<div id="title">SMART HOUSE folding principle<br>folded 2.506 m → expanded 7.46 m width<br>6.058 m length · 2.706 m height</div>
+<div id="legend">
+  <span class="sw" style="background:#9fb8c8"></span>70x35x4 field profiles, installed with the panel frame<br>
+  <span class="sw" style="background:#e8923a"></span>single 70x35x4 perimeter/opening rails; no square frame by default<br>
+  <span class="sw" style="background:#c0564a"></span>heavier floor/base rails<br>
+  <span class="sw" style="background:#7bd389"></span>local inserts / beam pockets / hard-zone backing<br>
+  <span class="sw" style="background:#ffd54a"></span>D&D butt hinges: 304.8x127 mm, 18 mm barrel, 4.7 mm leaf<br>
+  <span class="sw" style="background:#5fb8d8;opacity:.5"></span>3 mm FRP skins + bonded rigid core; 12.4 mm VIG panes
+</div>
+<div id="sectionDetail">
+  <b>Tested wall / roof sandwich section</b>
+  <svg viewBox="0 0 300 88" role="img" aria-label="FRP sandwich panel section">
+    <rect x="18" y="14" width="264" height="60" fill="#26313a" stroke="#8795a1" stroke-width="1"/>
+    <rect x="18" y="14" width="264" height="5" fill="#5fb8d8"/>
+    <rect x="18" y="69" width="264" height="5" fill="#5fb8d8"/>
+    <rect x="18" y="21" width="264" height="46" fill="#6f8f64" opacity=".88"/>
+    <rect x="80" y="19" width="35" height="50" fill="#9fb8c8" stroke="#d7e1ea" stroke-width="1"/>
+    <line x1="18" y1="20" x2="282" y2="20" stroke="#f3d36a" stroke-width="2"/>
+    <line x1="18" y1="68" x2="282" y2="68" stroke="#f3d36a" stroke-width="2"/>
+    <text x="22" y="11" fill="#dce7ef" font-size="10">3 mm FRP skin</text>
+    <text x="122" y="46" fill="#ffffff" font-size="11">100 kg/m3 rigid stone-wool core</text>
+    <text x="73" y="83" fill="#dce7ef" font-size="10">full-face structural adhesive bond both faces</text>
+    <text x="72" y="37" fill="#0b1116" font-size="10">70x35x4</text>
+  </svg>
+  Bare 3 mm skins fail buckling. This core and bond are structural, not optional insulation.
+</div>
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+"three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+const Q=new URLSearchParams(location.search);
+
+/* ---- dimensions (m) ---- */
+const L=6.058, H=2.706, D=2.55;        // length, height, wing depth from Ivan's PDF
+const CORE=2.36, Z1=D, Z2=D+CORE;      // core long edges (z)
+const T=0.076, FLD=0.076;              // 7.6 cm wall/floor/roof thickness
+const SKIN=0.003, P_W=0.035, P_D=0.07; // 3 mm skins + single 70x35x4 profiles
+const HINGE_LEN=0.3048, HINGE_W=0.127, HINGE_PIN_D=0.018, HINGE_THICK=0.0047;
+const FLOOR_TOP=FLD, ROOF_TOP=H;       // one shared datum: core and folding wings align here
+const ROOF_UNDERSIDE=ROOF_TOP-T;       // wall/facade panels must touch the roof profile
+const ROOF_D=D+T;                      // roof wings cover the wall thickness, not stop short
+const WALL_Y0=FLD, WALL_Y1=ROOF_UNDERSIDE;
+const HW=WALL_Y1-WALL_Y0;              // ≈2.55 m, matching the wing depth and PDF height logic
+
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x1a1d21);
+const cam=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.1,200);
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+scene.add(new THREE.AmbientLight(0xffffff,.55));
+const s1=new THREE.DirectionalLight(0xffffff,1.15);s1.position.set(8,12,6);scene.add(s1);
+const s2=new THREE.DirectionalLight(0x88aaff,.35);s2.position.set(-6,4,-9);scene.add(s2);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(50,50),
+  new THREE.MeshStandardMaterial({color:0x23272e,roughness:1}));
+ground.rotation.x=-Math.PI/2;ground.position.y=-0.012;scene.add(ground);
+scene.add(new THREE.GridHelper(50,50,0x39404a,0x2a2f36));
+
+const MAT={f:new THREE.MeshStandardMaterial({color:0x9fb8c8,roughness:.55}),
+ e:new THREE.MeshStandardMaterial({color:0xe8923a,roughness:.5}),
+ b:new THREE.MeshStandardMaterial({color:0xc0564a,roughness:.5}),
+ p:new THREE.MeshStandardMaterial({color:0x7bd389,roughness:.48}),
+ r:new THREE.MeshStandardMaterial({color:0xe60012,roughness:.45}),
+ w:new THREE.MeshStandardMaterial({color:0x2f8fd6,roughness:.38}),
+ h:new THREE.MeshStandardMaterial({color:0xffd54a,roughness:.35,metalness:.3}),
+ s:new THREE.MeshPhysicalMaterial({color:0x5fb8d8,transparent:true,opacity:.4,roughness:.25,side:THREE.DoubleSide}),
+ v:new THREE.MeshPhysicalMaterial({color:0x87d8f0,transparent:true,opacity:.62,roughness:.08,side:THREE.DoubleSide}),
+ c:new THREE.MeshStandardMaterial({color:0xb9a6de,roughness:.52})};
+const skinMeshes=[];
+function box(g,c,s,m){const o=new THREE.Mesh(new THREE.BoxGeometry(...s),m);
+ o.position.set(...c);g.add(o);if(m===MAT.s)skinMeshes.push(o);return o;}
+function hingeRod(g,c,len,axis='x'){
+ const hg=new THREE.Group();
+ const n=len>5.0?6:len>2.0?5:Math.max(1,Math.round(len/HINGE_LEN));
+ for(let i=0;i<n;i++){
+   const off=-len/2+(i+0.5)*len/n;
+   const pin=new THREE.Mesh(new THREE.CylinderGeometry(HINGE_PIN_D/2,HINGE_PIN_D/2,HINGE_LEN,12),MAT.h);
+   const leafA=new THREE.Mesh(new THREE.BoxGeometry(HINGE_LEN,HINGE_THICK,HINGE_W/2),MAT.h);
+   const leafB=new THREE.Mesh(new THREE.BoxGeometry(HINGE_LEN,HINGE_THICK,HINGE_W/2),MAT.h);
+   if(axis==='x'){
+     pin.rotation.z=Math.PI/2; pin.position.set(c[0]+off,c[1],c[2]);
+     leafA.position.set(c[0]+off,c[1],c[2]-HINGE_W/4);
+     leafB.position.set(c[0]+off,c[1],c[2]+HINGE_W/4);
+   }else{
+     pin.position.set(c[0],c[1]+off,c[2]);
+     leafA.geometry.dispose(); leafB.geometry.dispose();
+     leafA.geometry=new THREE.BoxGeometry(HINGE_THICK,HINGE_LEN,HINGE_W/2);
+     leafB.geometry=new THREE.BoxGeometry(HINGE_THICK,HINGE_LEN,HINGE_W/2);
+     leafA.position.set(c[0]-HINGE_W/4,c[1]+off,c[2]);
+     leafB.position.set(c[0]+HINGE_W/4,c[1]+off,c[2]);
+   }
+   hg.add(pin,leafA,leafB);
+ }
+ g.add(hg); return hg;}
+function label3d(text,pos,scale=0.42){
+ const cnv=document.createElement('canvas'),ctx=cnv.getContext('2d');
+ cnv.width=512; cnv.height=128;
+ ctx.fillStyle='rgba(14,18,24,.82)'; ctx.fillRect(0,0,512,128);
+ ctx.strokeStyle='rgba(255,255,255,.22)'; ctx.strokeRect(1,1,510,126);
+ ctx.fillStyle='#e8eef5'; ctx.font='32px system-ui,sans-serif';
+ ctx.textAlign='center'; ctx.textBaseline='middle';
+ const lines=text.split('\\n');
+ lines.forEach((line,i)=>ctx.fillText(line,256,64+(i-(lines.length-1)/2)*34));
+ const tex=new THREE.CanvasTexture(cnv);
+ const mat=new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false});
+ const spr=new THREE.Sprite(mat); spr.position.set(...pos); spr.scale.set(scale*5.5,scale*1.35,1);
+ scene.add(spr); return spr;}
+
+/* ============ PANEL BUILDERS (local coords, +z outward, y up) ============ */
+// generic framed panel lying in x-z plane: x 0..L, z 0..d, thickness T (y -T..0)
+function slabPanel(d,joistStep,skinTop,skinBot,edgeRails=true,crossRows=1){
+ const g=new THREE.Group();
+ if(edgeRails) for(const z of [P_W/2,d-P_W/2]) box(g,[L/2,-T/2,z],[L,P_D,P_W],MAT.e);
+ for(const x of [P_W/2,L-P_W/2]) box(g,[x,-T/2,d/2],[P_W,P_D,d-2*P_W],MAT.e);
+ for(let x=joistStep;x<L-0.1;x+=joistStep) box(g,[x,-T/2,d/2],[P_W,P_D,d-2*P_W],MAT.f);
+ for(let i=1;i<=crossRows;i++){
+   const z=d*i/(crossRows+1);
+   box(g,[L/2,-T/2,z],[L-2*P_W,P_D,P_W],MAT.f);}
+ if(skinTop) box(g,[L/2,SKIN/2,d/2],[L,SKIN,d],MAT.s);
+ if(skinBot) box(g,[L/2,-T-SKIN/2,d/2],[L,SKIN,d],MAT.s);
+ return g;}
+// wall panel in x-y plane: x 0..len, y 0..h, thickness T (z 0..T); openings=[{x,w,y,hh}]
+function wallPanel(h,openings,len=L){
+ const g=new THREE.Group(); const zc=P_D/2;
+ for(const y of [P_W/2,h-P_W/2]) box(g,[len/2,y,zc],[len,P_W,P_D],MAT.e);
+ for(const x of [P_W/2,len-P_W/2]) box(g,[x,h/2,zc],[P_W,h-2*P_W,P_D],MAT.e);
+ for(let x=0.6;x<len-0.1;x+=0.6){        // verticals @600, broken at openings
+   const segs=[[P_W,h-P_W]];
+   for(const o of openings) if(x>o.x-0.05&&x<o.x+o.w+0.05){segs[0]=[P_W,o.y];segs.push([o.y+o.hh,h-P_W]);}
+   for(const [ya,yb] of segs) if(yb-ya>0.1) box(g,[x,(ya+yb)/2,zc],[P_W,yb-ya,P_D],MAT.f);}
+ for(const y of [h/3,2*h/3]){            // HORIZONTAL rails (2 rows) - Ivan's point
+   let xs=P_W;
+   const cuts=openings.filter(o=>y>o.y&&y<o.y+o.hh).sort((a,b)=>a.x-b.x);
+   for(const o of cuts){ if(o.x-xs>0.1) box(g,[(xs+o.x)/2,y,zc],[o.x-xs,P_W,P_D],MAT.f); xs=o.x+o.w;}
+   if(len-P_W-xs>0.1) box(g,[(xs+len-P_W)/2,y,zc],[len-P_W-xs,P_W,P_D],MAT.f);}
+ for(const o of openings){               // collector frames around openings
+   for(const y of [o.y-P_W/2,o.y+o.hh+P_W/2]) box(g,[o.x+o.w/2,y,zc],[o.w+2*P_W,P_W,P_D],MAT.e);
+   for(const x of [o.x-P_W/2,o.x+o.w+P_W/2]) box(g,[x,o.y+o.hh/2,zc],[P_W,o.hh,P_D],MAT.e);}
+ // skins both faces, pieced around openings
+ for(const zs of [-SKIN/2,P_D+SKIN/2]){
+   let xs=0;
+   const sorted=[...openings].sort((a,b)=>a.x-b.x);
+   for(const o of sorted){
+     if(o.x-xs>0.01) box(g,[(xs+o.x)/2,h/2,zs],[o.x-xs,h,SKIN],MAT.s);
+     if(o.y>0.01) box(g,[o.x+o.w/2,o.y/2,zs],[o.w,o.y,SKIN],MAT.s);
+     if(h-o.y-o.hh>0.01) box(g,[o.x+o.w/2,(o.y+o.hh+h)/2,zs],[o.w,h-o.y-o.hh,SKIN],MAT.s);
+     xs=o.x+o.w;}
+   if(len-xs>0.01) box(g,[(xs+len)/2,h/2,zs],[len-xs,h,SKIN],MAT.s);}
+ return g;}
+// end wall (closes wing end): z 0..d, y 0..h, thickness T in x
+function endPanel(d,h,openings=false,openingSpan=d){
+ const g=new THREE.Group(); const xc=P_D/2;
+ const horizontalRails=openings?[h-P_W/2]:[P_W/2,h-P_W/2];
+ for(const y of horizontalRails) box(g,[xc,y,d/2],[P_D,P_W,d],MAT.e);
+ for(const z of [P_W/2,d-P_W/2]) box(g,[xc,h/2,z],[P_D,h-2*P_W,P_W],MAT.e);
+ for(let z=0.6;z<d-0.1;z+=0.6) box(g,[xc,h/2,z],[P_D,h-2*P_W,P_W],MAT.f);
+ for(const y of [h/3,2*h/3]) box(g,[xc,y,d/2],[P_D,P_W,d-2*P_W],MAT.f);
+ for(const xs of [-SKIN/2,P_D+SKIN/2]){
+   if(openings){
+     for(const [za,zb] of facadeSolidZones(d,openingSpan))
+       if(zb-za>0.001) box(g,[xs,h/2,(za+zb)/2],[SKIN,h,zb-za],MAT.s);
+   } else {
+     box(g,[xs,h/2,d/2],[SKIN,h,d],MAT.s);
+   }}
+ if(openings) addEndOpenings(g,openingSpan,h);
+ return g;}
+function facadeLayout(span){
+ const moduleW=0.825, beamW=0.035, glassT=0.0124;
+ const total=moduleW*3+beamW*2, start=(span-total)/2;
+ return {moduleW,beamW,glassT,total,start,
+   beams:[start+moduleW,start+moduleW+beamW+moduleW],
+   items:[
+     {kind:'window',z0:start,z1:start+moduleW},
+     {kind:'door',z0:start+moduleW+beamW,z1:start+moduleW+beamW+moduleW},
+     {kind:'window',z0:start+moduleW*2+beamW*2,z1:start+total}
+   ]};}
+function facadeSolidZones(frameD,openingSpan){
+ const f=facadeLayout(openingSpan);
+ return [
+   [0,f.start],
+   [f.beams[0],f.beams[0]+f.beamW],
+   [f.beams[1],f.beams[1]+f.beamW],
+   [f.start+f.total,frameD]
+ ];}
+function addEndOpenings(g,d,h){
+ const f=facadeLayout(d);
+ for(const z0 of f.beams) box(g,[P_D/2,h/2,z0+f.beamW/2],[P_D,h,f.beamW],MAT.e);
+ for(const it of f.items){
+   const w=it.z1-it.z0, z=(it.z0+it.z1)/2;
+   box(g,[P_D+0.018,h/2,z],[0.055,h,w],MAT.c);
+   const gh=it.kind==='door'?h-0.16:h-0.18;
+   box(g,[P_D+0.053,h/2,z],[f.glassT,gh,w-0.12],MAT.v);
+ }}
+
+/* ============ CORE (fixed) ============ */
+const core=new THREE.Group(); scene.add(core);
+{const Wc=Z2-Z1;
+ // floor: structure sits below one flat top datum shared by core and wings.
+ for(const z of [Z1+0.04,Z2-0.04]) box(core,[L/2,FLOOR_TOP-T/2,z],[L,T,0.08],MAT.b);
+ for(const x of [0.04,L-0.04]) box(core,[x,FLOOR_TOP-T/2,(Z1+Z2)/2],[0.08,T,Wc],MAT.b);
+ for(let x=0.4;x<L-0.1;x+=0.4) box(core,[x,FLOOR_TOP-T/2,(Z1+Z2)/2],[P_W,P_D,Wc-0.16],MAT.f);
+ for(const z of [Z1+Wc/3,Z1+2*Wc/3]) box(core,[L/2,FLOOR_TOP-T/2,z],[L-0.16,P_D,P_W],MAT.f);
+ box(core,[L/2,FLOOR_TOP+SKIN/2,(Z1+Z2)/2],[L,SKIN,Wc],MAT.s);
+ box(core,[L/2,-SKIN/2,(Z1+Z2)/2],[L,SKIN,Wc],MAT.s);
+ // roof slab
+ for(const z of [Z1+P_W/2,Z2-P_W/2]) box(core,[L/2,H-T/2,z],[L,P_D,P_W],MAT.e);
+ for(const x of [P_W/2,L-P_W/2]) box(core,[x,H-T/2,(Z1+Z2)/2],[P_W,P_D,Wc-2*P_W],MAT.e);
+ for(let x=0.6;x<L-0.1;x+=0.6) box(core,[x,H-T/2,(Z1+Z2)/2],[P_W,P_D,Wc-2*P_W],MAT.f);
+ box(core,[L/2,ROOF_TOP+SKIN/2,(Z1+Z2)/2],[L,SKIN,Wc],MAT.s);
+ box(core,[L/2,ROOF_TOP-T-SKIN/2,(Z1+Z2)/2],[L,SKIN,Wc],MAT.s);
+ // end walls of core (x=0, x=L) with small service windows
+ for(const [xe,dir] of [[0,1],[L,-1]]){
+   const w=new THREE.Group(); w.position.set(xe-(dir<0?T:0),FLD,Z1);
+   const ep=endPanel(Z2-Z1,H-FLD-T);
+   // small window in core end (bathroom/kitchen ventilation)
+   w.add(ep); core.add(w);}
+ // corner posts + hinge rails (yellow) on long edges
+ for(const z of [Z1+P_D/2,Z2-P_D/2]) for(const x of [P_W/2,L-P_W/2])
+   box(core,[x,(FLD+H-T)/2,z],[P_W,H-T-FLD,P_D],MAT.e);
+ hingeRod(core,[L/2,ROOF_TOP-0.03,Z1],L);                         // roof hinge lines on same
+ hingeRod(core,[L/2,ROOF_TOP-0.03,Z2],L);                         //  straight roof datum
+ hingeRod(core,[L/2,FLOOR_TOP+0.03,Z1],L);                        // floor hinge lines on same
+ hingeRod(core,[L/2,FLOOR_TOP+0.03,Z2],L);                        //  flat floor datum
+ for(const z of [Z1,Z2]){
+   box(core,[L/2,ROOF_TOP-0.07,z],[L,0.035,0.045],MAT.p);
+   box(core,[L/2,FLOOR_TOP+0.07,z],[L,0.035,0.045],MAT.p);
+ }
+}
+
+/* ============ WINGS (animated) ============ */
+// Keep the long side walls clean. The end/facade panels carry window-door-window modules.
+const OPEN_R=[];
+const OPEN_L=[];
+// Build each wing in a LOCAL +z frame (outer edge at Z2, extends +z). The −z (left)
+// wing is the same geometry mirrored by root.scale.z = −1 about the core mid-plane,
+// so all fold formulas below are written once, in the +z sense.
+const MID=(Z1+Z2)/2;
+function makeWing(openings,mirror){
+ const root=new THREE.Group();
+ if(mirror){root.scale.z=-1; root.position.z=Z1+Z2;}  // mirror +z wing → −z wing
+ scene.add(root);
+ const wing={root};
+ // FLOOR: pivot = shared finished floor datum; slab structure hangs below it.
+ const fp=new THREE.Group(); fp.position.set(0,FLOOR_TOP,Z2); root.add(fp);
+ fp.add(slabPanel(D,0.4,true,true,true,2));           // 400 mm joists + two cross-blocking rows
+ // OUTER WALL: child of floor, hinged at floor outer edge (0,0,D). Deployed → stands +y.
+ // Stored (t=0) it lies flat ONTO the floor pointing toward the core (−z), so when the
+ // floor stands up the 2.55 m wall fits under the 2.70 m height instead of protruding.
+ const ow=new THREE.Group(); ow.position.set(0,0,D); fp.add(ow);
+ const wPan=wallPanel(HW,openings,L); wPan.position.set(0,0,0); ow.add(wPan);
+ hingeRod(ow,[L/2,0.0,0.0],L);
+ // ROOF: pivot = shared finished roof datum; wing roof extends over the wall thickness.
+ const rp=new THREE.Group(); rp.position.set(0,ROOF_TOP,Z2); root.add(rp);
+ rp.add(slabPanel(ROOF_D,0.6,true,true));
+ wing.fp=fp; wing.ow=ow; wing.rp=rp;
+ return wing;}
+const wingR=makeWing(OPEN_R,false), wingL=makeWing(OPEN_L,true);
+const installedFacades=[];
+const installGroups={horizontal:[],doors:[],windows:[]};
+function installedFrontBackFacade(x,dir){
+ const g=new THREE.Group();
+ g.position.set(x,FLD,Z1-D);
+ scene.add(g); installedFacades.push(g);
+ const x0=dir>0?0:-P_D;
+ const fullW=D+CORE+D;
+ // Always-visible front/back frame outline and core division lines after expansion.
+ box(g,[x0+P_D/2,HW-P_W/2,fullW/2],[P_D,P_W,fullW],MAT.e);
+ box(g,[x0+P_D/2,P_W/2,fullW/2],[P_D,P_W,fullW],MAT.e);
+ for(const z of [P_W/2,D-P_W/2,D+CORE+P_W/2,fullW-P_W/2])
+   box(g,[x0+P_D/2,HW/2,z],[P_D,HW,P_W],MAT.e);
+ for(const y of [HW/3,2*HW/3])
+   box(g,[x0+P_D/2,y,D+CORE/2],[P_D,P_W,CORE-2*P_W],MAT.f);
+ // Step 5: vertical beam lines plus doors, installed after the main frame is open.
+ const dg=new THREE.Group(); g.add(dg); installGroups.doors.push(dg);
+ const layoutWing=(side)=>{
+   const outward=side<0?-1:1;
+   const coreEdge=side<0?D:D+CORE;
+   const doorW=0.825, winW=0.825, beamW=0.035;
+   const door0=side<0?coreEdge-doorW:coreEdge;
+   const w10=side<0?door0-beamW-winW:door0+doorW+beamW;
+   const w20=side<0?w10-beamW-winW:w10+winW+beamW;
+   return {outward,door0,w10,w20,doorW,winW,beamW};
+ };
+ for(const side of [-1,1]){
+   const a=layoutWing(side);
+   const doorZ=a.door0+a.doorW/2;
+   const beamZs=side<0?[a.door0-a.beamW/2,a.w10-a.beamW/2]:[a.door0+a.doorW+a.beamW/2,a.w10+a.winW+a.beamW/2];
+   for(const bz of beamZs) box(dg,[x0+P_D/2,HW/2,bz],[P_D,HW,a.beamW],MAT.r);
+   box(dg,[x0+P_D/2,HW/2,doorZ],[P_D,HW,a.doorW],MAT.c);
+   box(dg,[x0+P_D*1.05,HW/2,doorZ],[0.018,HW-0.14,a.doorW-0.14],MAT.c);
+ }
+ // Step 6: windows, installed last.
+ const wg=new THREE.Group(); g.add(wg); installGroups.windows.push(wg);
+ for(const side of [-1,1]){
+   const a=layoutWing(side);
+   for(const z0 of [a.w10,a.w20]){
+     const z=z0+a.winW/2;
+     box(wg,[x0+P_D/2,HW/2,z],[P_D,HW,a.winW],MAT.w);
+     box(wg,[x0+P_D*1.05,HW/2,z],[0.0124,HW-0.14,a.winW-0.12],MAT.v);
+   }
+ }
+ return g;
+}
+installedFrontBackFacade(0,1);
+installedFrontBackFacade(L,-1);
+function installedLongClosingBeams(){
+ const g=new THREE.Group(); scene.add(g); installGroups.horizontal.push(g);
+ // Step 4 beams run the whole house length, exactly along the roof-wing/side-wall joint.
+ for(const z of [Z1-D-T/2,Z2+D+T/2]){
+   box(g,[L/2,ROOF_UNDERSIDE-P_W/2,z],[L,P_W,T],MAT.r);
+   for(const x of [P_D/2,L-P_D/2])
+     box(g,[x,ROOF_UNDERSIDE-P_W/2,z],[P_D*1.25,P_W*2.2,T*1.35],MAT.p);
+ }
+ return g;
+}
+installedLongClosingBeams();
+label3d('walls / roof ribs\\n600 mm max spacing',[L*0.63,2.02,Z2+D*0.50],0.42);
+label3d('floor joists 400 mm\\n+ cross blocking rows',[L*0.64,0.72,Z2+D*0.50],0.38);
+label3d('single 70x35x4 FRP\\nno square outer frame',[L*0.60,2.92,Z2+D*0.46],0.40);
+label3d('3 mm FRP skins + bonded rigid core\\nrequired to stop skin buckling',[L*0.33,1.35,Z1-0.45],0.40);
+label3d('D&D stainless butt hinge\\n304.8x127 mm, 18 mm barrel',[L*0.18,2.42,Z2+0.18],0.38);
+label3d('PDF sequence: roof first\\nthen floor+walls, then wall upright',[L*0.50,3.28,Z1-0.70],0.40);
+label3d('Step 4 beams: full length\\nseated in end pockets / brackets',[L*0.50,2.58,Z1-D-0.28],0.36);
+label3d('facade modules sit on floor wing\\nand touch roof wing',[L*0.08,1.55,Z1-D+0.50],0.35);
+label3d('openings need edge closeouts\\nand reinforced local backing',[L*0.07,1.02,Z2+D-0.36],0.34);
+
+/* ============ FOLD ANIMATION ============ */
+// Authoritative PDF order (2026-06-14):
+// 1 roof wings open, 2 floor+wall assemblies open, 3 walls stand up,
+// 4 horizontal closing beams, 5 vertical beams + doors, 6 windows.
+const ease=t=>t<0?0:t>1?1:t*t*(3-2*t);
+function setFold(t){ // t=0 folded for transport, t=1 deployed house
+ for(const w of [wingR,wingL]){
+  const tr=ease((t-0.00)/0.22),  // Step 1: roof wings first
+        tf=ease((t-0.22)/0.24),  // Step 2: floor opens with wall still hinged to it
+        tw=ease((t-0.46)/0.18);  // Step 3: walls stand up from floor outer edge
+  w.fp.rotation.x = -(1-tf)*(Math.PI/2);          // stored: floor vertical against core
+  w.ow.rotation.x = -(1-tw)*(Math.PI/2);          // stored: wall lying flat on floor (toward core)
+  w.rp.rotation.x =  (1-tr)*(Math.PI/2);          // stored: roof vertical, opens before floor
+ }
+ for(const g of installedFacades) g.visible=t>=0.64;
+ for(const g of installGroups.horizontal) g.visible=t>=0.64;
+ for(const g of installGroups.doors) g.visible=t>=0.78;
+ for(const g of installGroups.windows) g.visible=t>=0.90;
+ const st=document.getElementById('stage');
+ st.textContent = t<=0.01?'Folded for transport, 2.506 m envelope width':
+   t<0.22?'1/6: unfold roof wings first':
+   t<0.46?'2/6: unfold floor panels with walls still hinged to the floors':
+   t<0.64?'3/6: unfold / stand up the side walls':
+   t<0.78?'4/6: install horizontal beams between roof wings and side walls':
+   t<0.90?'5/6: install vertical beams and doors':
+   t<0.99?'6/6: install VIG windows':
+   'Expanded 7.46 x 6.058 m footprint; lock and seal the fold joints';}
+
+/* ============ UI ============ */
+const ctr=new OrbitControls(cam,renderer.domElement);
+ctr.target.set(L/2,H/2,(Z1+Z2)/2);
+const cams={corner:[L+5.6,4.5,-4.8],iso:[L/2+8.0,5.3,(Z1+Z2)/2+9.0],
+  front:[L/2,2.3,(Z1+Z2)/2+12.0],end:[-7.3,3.1,(Z1+Z2)/2]};
+cam.position.set(...cams[Q.get('cam')||'corner']); ctr.update();
+let T0=parseFloat(Q.get('t')??'0'); setFold(T0);
+const slider=document.getElementById('slider'); slider.value=T0*1000;
+slider.oninput=()=>{T0=slider.value/1000;setFold(T0);anim_target=null;};
+let anim_target=null;
+document.getElementById('bUnfold').onclick=()=>anim_target=1;
+document.getElementById('bFold').onclick=()=>anim_target=0;
+let skins=Q.get('skins')==='1';
+const bF=document.getElementById('bFrame'),bS=document.getElementById('bSkins');
+function setSkins(v){skins=v;for(const m of skinMeshes)m.visible=v;
+ bF.classList.toggle('on',!v);bS.classList.toggle('on',v);}
+bF.onclick=()=>setSkins(false); bS.onclick=()=>setSkins(true); setSkins(skins);
+let rot=Q.get('rot')==='1';
+document.getElementById('bRot').onclick=()=>rot=!rot;
+addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;
+ cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+(function loop(ts){requestAnimationFrame(loop);
+ if(anim_target!==null){const d=anim_target>T0?1:-1; T0+=d*0.004;
+   if((d>0&&T0>=anim_target)||(d<0&&T0<=anim_target)){T0=anim_target;anim_target=null;}
+   slider.value=T0*1000; setFold(T0);}
+ if(rot){const a=(ts||0)*8e-5,r=13;
+   cam.position.set(L/2+r*Math.cos(a),5.6,(Z1+Z2)/2+r*Math.sin(a));cam.lookAt(L/2,H/2,(Z1+Z2)/2);}
+ ctr.enabled=!rot; renderer.render(scene,cam);})(0);
+</script>
+</body>
+</html>

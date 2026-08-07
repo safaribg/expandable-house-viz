@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>FRP Folding Container House — V2</title>
+<style>
+  body{margin:0;overflow:hidden;font-family:system-ui,sans-serif;background:#1a1d21}
+  #ui{position:fixed;top:12px;left:12px;z-index:10;color:#eee;background:rgba(0,0,0,.45);
+      padding:10px 14px;border-radius:8px;max-width:340px}
+  #ui button{margin:0 6px 8px 0;padding:8px 14px;border:0;border-radius:6px;cursor:pointer;
+    background:#2e3440;color:#eee;font-size:14px}
+  #ui button.on{background:#3a7bd5}
+  #slider{width:300px}
+  #stage{font-size:12px;color:#9fb3c8;margin-top:4px}
+  #legend{position:fixed;bottom:12px;left:12px;color:#ddd;font-size:12px;line-height:1.65;
+    background:rgba(0,0,0,.45);padding:10px 14px;border-radius:8px}
+  .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  #title{position:fixed;top:12px;right:16px;color:#9fb3c8;font-size:13px;text-align:right}
+</style>
+</head>
+<body>
+<div id="ui">
+  <button id="bFrame" class="on">Профили</button>
+  <button id="bSkins">+ FRP листове</button>
+  <button id="bRot">⟳</button><br>
+  <button id="bUnfold">▶ Разгъни</button>
+  <button id="bFold">◀ Сгъни</button><br>
+  <input type="range" id="slider" min="0" max="1000" value="0">
+  <div id="stage">Сгънато за транспорт</div>
+</div>
+<div id="title">FRP Folding Container House V2<br>сгънато 2.506 → разгънато 6.06 m<br>7.45 m дължина · 2.703 m височина</div>
+<div id="legend">
+  <span class="sw" style="background:#9fb8c8"></span>70×35×3.0 поле (верт. @600 + хориз. ребра)<br>
+  <span class="sw" style="background:#e8923a"></span>70×70×3.6 рамки на панели / отвори<br>
+  <span class="sw" style="background:#c0564a"></span>80×80×3.6 подова база<br>
+  <span class="sw" style="background:#ffd54a"></span>панти / линии на сгъване<br>
+  <span class="sw" style="background:#5fb8d8;opacity:.5"></span>FRP кожи (3 mm; под 4 mm)
+</div>
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+"three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+const Q=new URLSearchParams(location.search);
+
+/* ---- dimensions (m) ---- */
+const L=7.45, H=2.703, D=1.777;        // length, height, wing depth
+const Z1=1.777, Z2=4.283;              // core long edges (z)
+const T=0.07, FLD=0.08;                // panel depth, floor base
+const WALL_Y0=FLD, WALL_Y1=H-2*T;      // deployed wing wall span (floor top → wing-roof underside)
+const HW=WALL_Y1-WALL_Y0;              // wing wall height ≈2.483 — TALLER than wing depth 1.777!
+
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x1a1d21);
+const cam=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.1,200);
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+scene.add(new THREE.AmbientLight(0xffffff,.55));
+const s1=new THREE.DirectionalLight(0xffffff,1.15);s1.position.set(8,12,6);scene.add(s1);
+const s2=new THREE.DirectionalLight(0x88aaff,.35);s2.position.set(-6,4,-9);scene.add(s2);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(50,50),
+  new THREE.MeshStandardMaterial({color:0x23272e,roughness:1}));
+ground.rotation.x=-Math.PI/2;ground.position.y=-0.012;scene.add(ground);
+scene.add(new THREE.GridHelper(50,50,0x39404a,0x2a2f36));
+
+const MAT={f:new THREE.MeshStandardMaterial({color:0x9fb8c8,roughness:.55}),
+ e:new THREE.MeshStandardMaterial({color:0xe8923a,roughness:.5}),
+ b:new THREE.MeshStandardMaterial({color:0xc0564a,roughness:.5}),
+ h:new THREE.MeshStandardMaterial({color:0xffd54a,roughness:.35,metalness:.3}),
+ s:new THREE.MeshPhysicalMaterial({color:0x5fb8d8,transparent:true,opacity:.4,roughness:.25,side:THREE.DoubleSide})};
+const skinMeshes=[];
+function box(g,c,s,m){const o=new THREE.Mesh(new THREE.BoxGeometry(...s),m);
+ o.position.set(...c);g.add(o);if(m===MAT.s)skinMeshes.push(o);return o;}
+function hingeRod(g,c,len,axis='x'){const o=new THREE.Mesh(
+ new THREE.CylinderGeometry(0.028,0.028,len,10),MAT.h);
+ if(axis==='x')o.rotation.z=Math.PI/2; o.position.set(...c);g.add(o);return o;}
+
+/* ============ PANEL BUILDERS (local coords, +z outward, y up) ============ */
+// generic framed panel lying in x-z plane: x 0..L, z 0..d, thickness T (y -T..0)
+function slabPanel(d,joistStep,skinTop,skinBot){
+ const g=new THREE.Group();
+ for(const z of [0.035,d-0.035]) box(g,[L/2,-T/2,z],[L,T,0.07],MAT.e);
+ for(const x of [0.035,L-0.035]) box(g,[x,-T/2,d/2],[0.07,T,d-0.14],MAT.e);
+ for(let x=joistStep;x<L-0.1;x+=joistStep) box(g,[x,-T/2,d/2],[0.035,T,d-0.14],MAT.f);
+ box(g,[L/2,-T/2,d/2],[L-0.14,T,0.035],MAT.f);            // cross rail mid
+ if(skinTop) box(g,[L/2,0.002,d/2],[L,0.004,d],MAT.s);
+ if(skinBot) box(g,[L/2,-T-0.0015,d/2],[L,0.003,d],MAT.s);
+ return g;}
+// wall panel in x-y plane: x 0..L, y 0..h, thickness T (z 0..T); openings=[{x,w,y,hh}]
+function wallPanel(h,openings){
+ const g=new THREE.Group(); const zc=T/2;
+ for(const y of [0.035,h-0.035]) box(g,[L/2,y,zc],[L,0.07,T],MAT.e);
+ for(const x of [0.035,L-0.035]) box(g,[x,h/2,zc],[0.07,h-0.14,T],MAT.e);
+ const inOp=(x,y)=>openings.some(o=>x>o.x-0.02&&x<o.x+o.w+0.02&&y>o.y-0.02&&y<o.y+o.hh+0.02);
+ for(let x=0.6;x<L-0.1;x+=0.6){          // verticals @600, broken at openings
+   const segs=[[0.07,h-0.07]];
+   for(const o of openings) if(x>o.x-0.05&&x<o.x+o.w+0.05){segs[0]=[0.07,o.y];segs.push([o.y+o.hh,h-0.07]);}
+   for(const [ya,yb] of segs) if(yb-ya>0.1) box(g,[x,(ya+yb)/2,zc],[0.035,yb-ya,T],MAT.f);}
+ for(const y of [h/3,2*h/3]){            // HORIZONTAL rails (2 rows) - Ivan's point
+   let xs=0.07;
+   const cuts=openings.filter(o=>y>o.y&&y<o.y+o.hh).sort((a,b)=>a.x-b.x);
+   for(const o of cuts){ if(o.x-xs>0.1) box(g,[(xs+o.x)/2,y,zc],[o.x-xs,0.035,T],MAT.f); xs=o.x+o.w;}
+   if(L-0.07-xs>0.1) box(g,[(xs+L-0.07)/2,y,zc],[L-0.07-xs,0.035,T],MAT.f);}
+ for(const o of openings){               // collector frames around openings
+   for(const y of [o.y-0.035,o.y+o.hh+0.035]) box(g,[o.x+o.w/2,y,zc],[o.w+0.14,0.07,T],MAT.e);
+   for(const x of [o.x-0.035,o.x+o.w+0.035]) box(g,[x,o.y+o.hh/2,zc],[0.07,o.hh,T],MAT.e);}
+ // skins both faces, pieced around openings
+ for(const zs of [-0.0015,T+0.0015]){
+   let xs=0;
+   const sorted=[...openings].sort((a,b)=>a.x-b.x);
+   for(const o of sorted){
+     if(o.x-xs>0.01) box(g,[(xs+o.x)/2,h/2,zs],[o.x-xs,h,0.003],MAT.s);
+     if(o.y>0.01) box(g,[o.x+o.w/2,o.y/2,zs],[o.w,o.y,0.003],MAT.s);
+     if(h-o.y-o.hh>0.01) box(g,[o.x+o.w/2,(o.y+o.hh+h)/2,zs],[o.w,h-o.y-o.hh,0.003],MAT.s);
+     xs=o.x+o.w;}
+   if(L-xs>0.01) box(g,[(xs+L)/2,h/2,zs],[L-xs,h,0.003],MAT.s);}
+ return g;}
+// end wall (closes wing end): z 0..d, y 0..h, thickness T in x
+function endPanel(d,h){
+ const g=new THREE.Group(); const xc=T/2;
+ for(const y of [0.035,h-0.035]) box(g,[xc,y,d/2],[T,0.07,d],MAT.e);
+ for(const z of [0.035,d-0.035]) box(g,[xc,h/2,z],[T,h-0.14,0.07],MAT.e);
+ for(let z=0.6;z<d-0.1;z+=0.6) box(g,[xc,h/2,z],[T,h-0.14,0.035],MAT.f);
+ for(const y of [h/3,2*h/3]) box(g,[xc,y,d/2],[T,0.035,d-0.14],MAT.f);
+ for(const xs of [-0.0015,T+0.0015]) box(g,[xs,h/2,d/2],[0.003,h,d],MAT.s);
+ return g;}
+
+/* ============ CORE (fixed) ============ */
+const core=new THREE.Group(); scene.add(core);
+{const Wc=Z2-Z1;
+ // floor: 80x80 base grid + skins
+ for(const z of [Z1+0.04,Z2-0.04]) box(core,[L/2,FLD/2,z],[L,FLD,0.08],MAT.b);
+ for(const x of [0.04,L-0.04]) box(core,[x,FLD/2,(Z1+Z2)/2],[0.08,FLD,Wc],MAT.b);
+ for(let x=0.4;x<L-0.1;x+=0.4) box(core,[x,FLD-0.035,(Z1+Z2)/2],[0.035,T,Wc-0.16],MAT.f);
+ box(core,[L/2,FLD+0.002,(Z1+Z2)/2],[L,0.004,Wc],MAT.s);
+ box(core,[L/2,-0.0015,(Z1+Z2)/2],[L,0.003,Wc],MAT.s);
+ // roof slab
+ for(const z of [Z1+0.035,Z2-0.035]) box(core,[L/2,H-T/2,z],[L,T,0.07],MAT.e);
+ for(const x of [0.035,L-0.035]) box(core,[x,H-T/2,(Z1+Z2)/2],[0.07,T,Wc-0.14],MAT.e);
+ for(let x=0.6;x<L-0.1;x+=0.6) box(core,[x,H-T/2,(Z1+Z2)/2],[0.035,T,Wc-0.14],MAT.f);
+ box(core,[L/2,H+0.0015,(Z1+Z2)/2],[L,0.003,Wc],MAT.s);
+ box(core,[L/2,H-T-0.0015,(Z1+Z2)/2],[L,0.003,Wc],MAT.s);
+ // end walls of core (x=0, x=L) with small service windows
+ for(const [xe,dir] of [[0,1],[L,-1]]){
+   const w=new THREE.Group(); w.position.set(xe-(dir<0?T:0),FLD,Z1);
+   const ep=endPanel(Z2-Z1,H-FLD-T);
+   // small window in core end (bathroom/kitchen ventilation)
+   w.add(ep); core.add(w);}
+ // corner posts + hinge rails (yellow) on long edges
+ for(const z of [Z1+0.035,Z2-0.035]) for(const x of [0.035,L-0.035])
+   box(core,[x,(FLD+H-T)/2,z],[0.07,H-T-FLD,0.07],MAT.e);
+ hingeRod(core,[L/2,H-T-0.03,Z1+0.08],L);                         // roof hinge lines (offset
+ hingeRod(core,[L/2,H-T-0.03,Z2-0.08],L);                         //  0.08 inside — roof hangs in core)
+ hingeRod(core,[L/2,FLD+0.03,Z1],L);                              // floor hinge lines (at edge —
+ hingeRod(core,[L/2,FLD+0.03,Z2],L);                              //  floor packs outside)
+}
+
+/* ============ WINGS (animated) ============ */
+// openings per Ivan's plan: right(+z) = entrance door + window; left(-z) = 2 bedroom windows
+const OPEN_R=[{x:1.10,w:0.95,y:0,hh:2.05},{x:4.40,w:1.40,y:0.90,hh:1.20}];
+const OPEN_L=[{x:1.60,w:1.40,y:0.90,hh:1.20},{x:4.90,w:1.40,y:0.90,hh:1.20}];
+// Build each wing in a LOCAL +z frame (outer edge at Z2, extends +z). The −z (left)
+// wing is the same geometry mirrored by root.scale.z = −1 about the core mid-plane,
+// so all fold formulas below are written once, in the +z sense.
+const MID=(Z1+Z2)/2;
+function makeWing(openings,mirror){
+ const root=new THREE.Group();
+ if(mirror){root.scale.z=-1; root.position.z=Z1+Z2;}  // mirror +z wing → −z wing
+ scene.add(root);
+ const wing={root};
+ // FLOOR: pivot = core bottom rail at (0,FLD,Z2); slab extends +z to Z2+D
+ const fp=new THREE.Group(); fp.position.set(0,FLD,Z2); root.add(fp);
+ fp.add(slabPanel(D,0.4,true,true));                  // slab top skin ≈ y0 = floor level
+ // OUTER WALL: child of floor, hinged at floor outer edge (0,0,D). Deployed → stands +y.
+ // Stored (t=0) it lies flat ONTO the floor pointing toward the core (−z), so when the
+ // floor stands up the 2.48 m wall fits under the 2.70 m height instead of protruding.
+ const ow=new THREE.Group(); ow.position.set(0,0,D); fp.add(ow);
+ const wPan=wallPanel(HW,openings); wPan.position.z=0; ow.add(wPan);
+ hingeRod(ow,[L/2,0.0,0.0],L);
+ // ROOF: pivot = core top rail at (0,H-T,Z2); slab extends +z. Stored hangs down inside.
+ const rp=new THREE.Group(); rp.position.set(0,H-T,Z2); root.add(rp);
+ rp.add(slabPanel(D,0.6,true,true));
+ // END walls: hinged on vertical axes at the two core corners; swing inward when stored.
+ wing.ends=[];
+ for(const [xe,edir] of [[0,1],[L,-1]]){
+   const ew=new THREE.Group(); ew.position.set(xe,FLD,Z2); root.add(ew);
+   const ep=endPanel(D,HW); ep.position.x=edir<0?-T:0;
+   ew.add(ep); hingeRod(ew,[edir*0.035,HW/2,0.035],HW,'y');
+   ew.userData={edir}; wing.ends.push(ew);}
+ wing.fp=fp; wing.ow=ow; wing.rp=rp;
+ return wing;}
+const wingR=makeWing(OPEN_R,false), wingL=makeWing(OPEN_L,true);
+
+/* ============ FOLD ANIMATION ============ */
+// Unfold order (t:0→1): floor swings DOWN, outer wall swings UP off the floor,
+// roof swings DOWN, end walls swing OUT. Reverse = stowing.
+const ease=t=>t<0?0:t>1?1:t*t*(3-2*t);
+function setFold(t){ // t=0 folded for transport, t=1 deployed house
+ for(const w of [wingR,wingL]){
+  const tf=ease((t-0.00)/0.28),  // floor down
+        tw=ease((t-0.30)/0.30),  // wall up off floor
+        tr=ease((t-0.34)/0.30),  // roof down
+        te=ease((t-0.70)/0.30);  // ends swing out
+  w.fp.rotation.x = -(1-tf)*(Math.PI/2);          // stored: floor vertical against core
+  w.ow.rotation.x = -(1-tw)*(Math.PI/2);          // stored: wall lying flat on floor (toward core)
+  w.rp.rotation.x =  (1-tr)*(Math.PI/2);          // stored: roof vertical, hanging inside
+  for(const ew of w.ends) ew.rotation.y = (1-te)*ew.userData.edir*(Math.PI/2);}
+ const st=document.getElementById('stage');
+ st.textContent = t<=0.01?'Сгънато за транспорт (2.506 m широчина)':
+   t<0.30?'1/4: подовите панели се спускат (долни панти на ядрото)':
+   t<0.34?'2/4: външните стени се изправят от пода (панта на ръба на пода)':
+   t<0.64?'3/4: покривните панели се спускат (горни панти на ядрото)':
+   t<0.99?'4/4: крайните стени се завъртат навън (вертикални панти)':
+   'Разгъната къща 6.06 × 7.45 m — заключи всички фуги';}
+
+/* ============ UI ============ */
+const ctr=new OrbitControls(cam,renderer.domElement);
+ctr.target.set(L/2,H/2,(Z1+Z2)/2);
+const cams={corner:[L+6.5,5.0,-4.6],iso:[L/2+9.5,6.0,(Z1+Z2)/2+10.5],
+  front:[L/2,2.3,(Z1+Z2)/2+13.5],end:[-8.5,3.4,(Z1+Z2)/2]};
+cam.position.set(...cams[Q.get('cam')||'corner']); ctr.update();
+let T0=parseFloat(Q.get('t')??'0'); setFold(T0);
+const slider=document.getElementById('slider'); slider.value=T0*1000;
+slider.oninput=()=>{T0=slider.value/1000;setFold(T0);anim_target=null;};
+let anim_target=null;
+document.getElementById('bUnfold').onclick=()=>anim_target=1;
+document.getElementById('bFold').onclick=()=>anim_target=0;
+let skins=Q.get('skins')==='1';
+const bF=document.getElementById('bFrame'),bS=document.getElementById('bSkins');
+function setSkins(v){skins=v;for(const m of skinMeshes)m.visible=v;
+ bF.classList.toggle('on',!v);bS.classList.toggle('on',v);}
+bF.onclick=()=>setSkins(false); bS.onclick=()=>setSkins(true); setSkins(skins);
+let rot=Q.get('rot')==='1';
+document.getElementById('bRot').onclick=()=>rot=!rot;
+addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;
+ cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+(function loop(ts){requestAnimationFrame(loop);
+ if(anim_target!==null){const d=anim_target>T0?1:-1; T0+=d*0.004;
+   if((d>0&&T0>=anim_target)||(d<0&&T0<=anim_target)){T0=anim_target;anim_target=null;}
+   slider.value=T0*1000; setFold(T0);}
+ if(rot){const a=(ts||0)*8e-5,r=13;
+   cam.position.set(L/2+r*Math.cos(a),5.6,(Z1+Z2)/2+r*Math.sin(a));cam.lookAt(L/2,H/2,(Z1+Z2)/2);}
+ ctr.enabled=!rot; renderer.render(scene,cam);})(0);
+</script>
+</body>
+</html>

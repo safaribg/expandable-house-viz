@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>FRP Expandable House — Construction V1</title>
+<style>
+  body{margin:0;overflow:hidden;font-family:system-ui,sans-serif;background:#1a1d21}
+  #ui{position:fixed;top:12px;left:12px;z-index:10;color:#eee}
+  #ui button{margin:0 6px 6px 0;padding:8px 14px;border:0;border-radius:6px;cursor:pointer;
+    background:#2e3440;color:#eee;font-size:14px}
+  #ui button.on{background:#3a7bd5}
+  #legend{position:fixed;bottom:12px;left:12px;color:#ddd;font-size:13px;line-height:1.7;
+    background:rgba(0,0,0,.45);padding:10px 14px;border-radius:8px}
+  .sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  #title{position:fixed;top:12px;right:16px;color:#9fb3c8;font-size:13px;text-align:right}
+</style>
+</head>
+<body>
+<div id="ui">
+  <button id="bFrame" class="on">Само профили</button>
+  <button id="bSkins">+ FRP листове</button>
+  <button id="bRot">⟳ Въртене</button>
+</div>
+<div id="title">FRP Expandable House V1<br>7.45 × 6.06 × 2.703 m — спецификация 2026-06-12</div>
+<div id="legend">
+  <span class="sw" style="background:#9fb8c8"></span>70×35×3.0 — поле (стени/покрив @600, под @400)<br>
+  <span class="sw" style="background:#e8923a"></span>70×70×3.6 — периметър / панти / фуги / отвори<br>
+  <span class="sw" style="background:#c0564a"></span>80×80×3.6 — подова база + повдигане<br>
+  <span class="sw" style="background:#ffd54a"></span>линии на сгъване (hinge/lock)<br>
+  <span class="sw" style="background:#5fb8d8;opacity:.5"></span>FRP листове 3 mm (под: 4 mm горе)
+</div>
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+"three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+const Q = new URLSearchParams(location.search);
+const L=7.45, W=6.06, H=2.703, T=0.07;          // m; T = panel depth
+const ZF=[1.777, 4.283];                          // fold lines (z)
+const FLD=0.08;                                   // floor base depth (80 mm)
+const Y0=FLD, Y1=H-T;                             // wall span between floor top & roof underside
+
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x1a1d21);
+const cam=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.1,200);
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+scene.add(new THREE.AmbientLight(0xffffff,.55));
+const sun=new THREE.DirectionalLight(0xffffff,1.2); sun.position.set(8,12,6); scene.add(sun);
+const sun2=new THREE.DirectionalLight(0x88aaff,.35); sun2.position.set(-6,4,-8); scene.add(sun2);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(40,40),
+  new THREE.MeshStandardMaterial({color:0x23272e,roughness:1}));
+ground.rotation.x=-Math.PI/2; ground.position.y=-0.01; scene.add(ground);
+scene.add(new THREE.GridHelper(40,40,0x39404a,0x2a2f36));
+
+const M={ field:new THREE.MeshStandardMaterial({color:0x9fb8c8,roughness:.55}),
+  edge:new THREE.MeshStandardMaterial({color:0xe8923a,roughness:.5}),
+  base:new THREE.MeshStandardMaterial({color:0xc0564a,roughness:.5}),
+  hinge:new THREE.MeshStandardMaterial({color:0xffd54a,roughness:.4}),
+  skin:new THREE.MeshPhysicalMaterial({color:0x5fb8d8,transparent:true,opacity:.38,
+    roughness:.25,side:THREE.DoubleSide}) };
+
+const gFrame=new THREE.Group(), gSkins=new THREE.Group();
+scene.add(gFrame,gSkins);
+// box member: center c=[x,y,z], size s=[dx,dy,dz]
+function box(g,c,s,mat){const m=new THREE.Mesh(new THREE.BoxGeometry(...s),mat);
+  m.position.set(...c); g.add(m); return m;}
+
+/* ---------------- FLOOR ---------------- */
+// 80x80 perimeter + fold-line rails (along x)
+for(const z of [0.04, W-0.04, ...ZF]) box(gFrame,[L/2,FLD/2,z],[L,FLD,0.08], z===0.04||z===W-0.04?M.base:M.hinge);
+for(const x of [0.04, L-0.04]) box(gFrame,[x,FLD/2,W/2],[0.08,FLD,W],M.base);
+// floor joists 70x35 @400 spanning z in 3 zones
+const zones=[[0.08,ZF[0]-0.04],[ZF[0]+0.04,ZF[1]-0.04],[ZF[1]+0.04,W-0.08]];
+for(let x=0.4;x<L-0.1;x+=0.4) for(const [za,zb] of zones)
+  box(gFrame,[x,FLD-0.035,(za+zb)/2],[0.035,T,zb-za],M.field);
+/* ---------------- WALLS ---------------- */
+function wallX(z,dir){ // wall in x-z plane at z, panel depth dir(+1 inward)
+  const zc=z+dir*T/2;
+  for(const y of [Y0+0.035, Y1-0.035]) box(gFrame,[L/2,y,zc],[L,0.07,0.07],M.edge); // rails
+  for(let x=0.6;x<L-0.1;x+=0.6) box(gFrame,[x,(Y0+Y1)/2,zc],[0.035,Y1-Y0-0.14,T],M.field);
+  for(const x of [0.035,L-0.035]) box(gFrame,[x,(Y0+Y1)/2,zc],[0.07,Y1-Y0,0.07],M.edge);
+}
+function wallZ(x,dir){ const xc=x+dir*T/2;
+  for(const y of [Y0+0.035, Y1-0.035]) box(gFrame,[xc,y,W/2],[0.07,0.07,W],M.edge);
+  for(let z=0.6;z<W-0.1;z+=0.6) box(gFrame,[xc,(Y0+Y1)/2,z],[T,Y1-Y0-0.14,0.035],M.field);
+}
+wallX(0,1); wallX(W,-1); wallZ(0,1); wallZ(L,-1);
+/* ---------------- ROOF ---------------- */
+for(const z of [0.035, W-0.035]) box(gFrame,[L/2,H-T/2,z],[L,T,0.07],M.edge);
+for(const x of [0.035, L-0.035]) box(gFrame,[x,H-T/2,W/2],[0.07,T,W],M.edge);
+for(const z of ZF) box(gFrame,[L/2,H-T/2,z],[L,T,0.08],M.hinge);   // roof fold rails
+for(let x=0.6;x<L-0.1;x+=0.6) for(const [za,zb] of zones)
+  box(gFrame,[x,H-T/2,(za+zb)/2],[0.035,T,zb-za],M.field);
+/* ---------------- SKINS ---------------- */
+const e=0.003;
+box(gSkins,[L/2,FLD+0.002,W/2],[L,0.004,W],M.skin);                 // floor top 4mm
+box(gSkins,[L/2,-e/2,W/2],[L,e,W],M.skin);                          // floor bottom
+box(gSkins,[L/2,H-T-e/2,W/2],[L,e,W],M.skin);                       // roof underside
+box(gSkins,[L/2,H+e/2,W/2],[L,e,W],M.skin);                         // roof top
+for(const z of [-e/2, T+e/2]) box(gSkins,[L/2,(Y0+Y1)/2,z],[L,Y1-Y0,e],M.skin);
+for(const z of [W+e/2, W-T-e/2]) box(gSkins,[L/2,(Y0+Y1)/2,z],[L,Y1-Y0,e],M.skin);
+for(const x of [-e/2, T+e/2]) box(gSkins,[x,(Y0+Y1)/2,W/2],[e,Y1-Y0,W],M.skin);
+for(const x of [L+e/2, L-T-e/2]) box(gSkins,[x,(Y0+Y1)/2,W/2],[e,Y1-Y0,W],M.skin);
+
+/* ---------------- UI / camera ---------------- */
+const ctr=new OrbitControls(cam,renderer.domElement);
+ctr.target.set(L/2,H/2,W/2);
+const cams={iso:[L/2+9.5,6.5,W/2+9.5], front:[L/2,2.2,W/2+12.5], corner:[L+7,4.8,-5.5], top:[L/2,14,W/2+0.01]};
+const cp=cams[Q.get('cam')||'iso']; cam.position.set(...cp); ctr.update();
+let skins = Q.get('skins')==='1'; gSkins.visible=skins;
+let rot = Q.get('rot')!=='0' && !Q.has('cam');
+const bF=document.getElementById('bFrame'), bS=document.getElementById('bSkins');
+function setMode(s){skins=s; gSkins.visible=s; bF.classList.toggle('on',!s); bS.classList.toggle('on',s);}
+bF.onclick=()=>setMode(false); bS.onclick=()=>setMode(true);
+document.getElementById('bRot').onclick=()=>rot=!rot;
+if(skins) setMode(true);
+addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);});
+(function anim(t){requestAnimationFrame(anim);
+  if(rot){const a=(t||0)*1e-4, r=11.5;
+    cam.position.set(L/2+r*Math.cos(a),6.2,W/2+r*Math.sin(a)); cam.lookAt(L/2,H/2,W/2);}
+  ctr.enabled=!rot; renderer.render(scene,cam);})(0);
+</script>
+</body>
+</html>
