@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>1000 mm panel sections A–E — structural test</title>
+<style>
+  :root{color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;background:#1a1d21;color:#e6edf3;font-family:system-ui,-apple-system,sans-serif}
+  #scene{position:fixed;inset:0;z-index:0}
+  .pane{position:fixed;z-index:5;background:rgba(12,15,18,.82);backdrop-filter:blur(6px);
+        border:1px solid #2c343d;border-radius:10px;padding:12px 14px}
+  #ui{top:12px;left:12px;max-width:330px}
+  #ui h1{font-size:15px;margin:0 0 2px}
+  #ui .sub{font-size:11.5px;color:#8fa3b8;margin:0 0 10px;line-height:1.45}
+  button{margin:0 5px 6px 0;padding:7px 12px;border:0;border-radius:6px;cursor:pointer;
+         background:#2e3440;color:#e6edf3;font-size:13px}
+  button.on{background:#3a7bd5}
+  label.row{display:block;font-size:11.5px;color:#9fb3c8;margin:8px 0 2px}
+  input[type=range]{width:100%}
+  #readout{position:fixed;z-index:5;right:12px;top:12px;width:330px;max-height:calc(100vh - 24px);
+           overflow:auto;background:rgba(12,15,18,.82);backdrop-filter:blur(6px);
+           border:1px solid #2c343d;border-radius:10px;padding:12px 14px}
+  #readout h2{font-size:13px;margin:0 0 8px;color:#fff}
+  .card{border:1px solid #2c343d;border-radius:8px;padding:8px 10px;margin-bottom:7px;background:#161b21}
+  .card.sel{border-color:#3a7bd5;background:#18202b}
+  .card .nm{font-size:13px;font-weight:600}
+  .card .kv{font-size:11.5px;color:#9fb3c8;margin-top:3px;line-height:1.5}
+  .card .kv b{color:#e6edf3;font-weight:600}
+  .bar{height:5px;border-radius:3px;background:#242c35;margin-top:5px;overflow:hidden}
+  .bar i{display:block;height:100%}
+  #sect{position:fixed;z-index:5;left:12px;bottom:12px;right:354px;
+        background:rgba(12,15,18,.82);backdrop-filter:blur(6px);
+        border:1px solid #2c343d;border-radius:10px;padding:10px 12px}
+  #sect .t{font-size:11.5px;color:#9fb3c8;margin-bottom:4px}
+  #sect svg{display:block;width:100%;height:auto}
+  #note{font-size:11px;color:#7d8fa3;margin-top:8px;line-height:1.5}
+  @media (max-width:900px){
+    #readout{position:static;width:auto;max-height:none;margin:12px;
+             backdrop-filter:none;background:#12161b}
+    #ui{position:static;max-width:none;margin:12px;backdrop-filter:none;background:#12161b}
+    #sect{position:static;right:auto;margin:12px;backdrop-filter:none;background:#12161b}
+    #scene{position:relative;height:52vh;inset:auto;display:block}
+    body{overflow:auto}
+  }
+</style>
+</head>
+<body>
+<div id="scene"></div>
+
+<div class="pane" id="ui">
+  <h1>1000 mm panel sections — structural test</h1>
+  <p class="sub">Ivan's four candidates A–D from the 2026-08-08 drawing, plus proposed E.
+     Bars show each panel bending under load. Drag to orbit.</p>
+  <div>
+    <button id="bWall" class="on">Wall · 2.706 m · 0.5 kPa</button>
+    <button id="bFloor">Floor · 2.4 m · 2.0 kPa</button>
+  </div>
+  <div>
+    <button id="bPlay" class="on">⏸ Pause</button>
+    <button id="bReal">Show true scale</button>
+  </div>
+  <label class="row">Deflection exaggeration: <span id="exVal">×200</span></label>
+  <input type="range" id="ex" min="1" max="600" value="200">
+  <div id="note">Deflections are magnified so you can see them. At true scale
+    all five are visually flat — that is itself the headline result.</div>
+</div>
+
+<div id="readout"><h2>Results</h2><div id="cards"></div>
+  <div id="note" style="margin-top:10px">
+    <b style="color:#e6edf3">Assumed, not on the drawing:</b> 70 mm section depth,
+    35 mm edge-profile width, bonded 100 kg/m³ stone-wool core.
+    Material: your tested pultrusion, E = 42.4 GPa, σ = 590 MPa.
+  </div>
+</div>
+
+<div id="sect"><div class="t" id="sectTitle">Cross-section</div><svg id="sectSvg" viewBox="0 0 1000 210"></svg></div>
+
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+"three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+const DATA = /*DATA*/{"assumptions":{"depth_mm":70.0,"width_mm":1000.0,"edge_w_mm":35.0,"E_L_MPa":42400.0,"E_core_MPa":5.0,"G_core_MPa":2.5},"results":[{"key":"A","title":"A \u2014 4 mm edge walls, 3 mm skins, single edge cell","note":"Thick vertical walls, thin skins. No divider.","t_skin":3.0,"t_web":4.0,"t_divider":0.0,"area_mm2":7024.0,"mass_kg_per_m2":13.345600000000001,"ix_cm4":708.7525333333332,"zx_cm3":202.50072380952378,"ei_kNm2":300.51107413333324,"ei_per_kg":22.51761435479358,"mid_webs":0,"clear_bay_mm":930.0,"wrinkling_MPa":40.46336167283227,"bare_skin_buckling_MPa":0.5448638879365617,"web_buckling_MPa":204.53679543243592,"wall":{"bending_mm":1.1616076741603092,"shear_mm":0.2083267707574654,"total_mm":1.3699344449177746,"span_over_delta":1975.2769995957128,"moment_Nmm":457652.25,"stress_MPa":2.2600030330285477},"floor":{"bending_mm":2.8751020324018186,"shear_mm":0.6554989075018208,"total_mm":3.5306009399036395,"span_over_delta":679.7709627487674,"moment_Nmm":1440000.0,"stress_MPa":7.1110856934738305},"rects":[{"x":0.0,"y":0.0,"w":1000.0,"h":3.0},{"x":0.0,"y":67.0,"w":1000.0,"h":3.0},{"x":0.0,"y":3.0,"w":4.0,"h":64.0},{"x":31.0,"y":3.0,"w":4.0,"h":64.0},{"x":965.0,"y":3.0,"w":4.0,"h":64.0},{"x":996.0,"y":3.0,"w":4.0,"h":64.0}]},{"key":"B","title":"B \u2014 4 mm throughout, single edge cell","note":"Heaviest. Uniform 4 mm everywhere.","t_skin":4.0,"t_web":4.0,"t_divider":0.0,"area_mm2":8992.0,"mass_kg_per_m2":17.0848,"ix_cm4":904.043733333333,"zx_cm3":258.2982095238094,"ei_kNm2":383.3145429333332,"ei_per_kg":22.43599825185739,"mid_webs":0,"clear_bay_mm":930.0,"wrinkling_MPa":40.46336167283227,"bare_skin_buckling_MPa":0.9686469118872211,"web_buckling_MPa":217.94555517462473,"wall":{"bending_mm":0.9106776049040995,"shear_mm":0.21504698916899653,"total_mm":1.125724594073096,"span_over_delta":2403.7850947265465,"moment_Nmm":457652.25,"stress_MPa":1.771797995981906},"floor":{"bending_mm":2.2540235321837727,"shear_mm":0.6766440335502667,"total_mm":2.9306675657340393,"span_over_delta":818.9260454038827,"moment_Nmm":1440000.0,"stress_MPa":5.574951536267864},"rects":[{"x":0.0,"y":0.0,"w":1000.0,"h":4.0},{"x":0.0,"y":66.0,"w":1000.0,"h":4.0},{"x":0.0,"y":4.0,"w":4.0,"h":62.0},{"x":31.0,"y":4.0,"w":4.0,"h":62.0},{"x":965.0,"y":4.0,"w":4.0,"h":62.0},{"x":996.0,"y":4.0,"w":4.0,"h":62.0}]},{"key":"C","title":"C \u2014 3.5 mm edge walls, 3 mm skins, split edge cell","note":"Divider splits the edge-cell wall height (\u65e5 section).","t_skin":3.0,"t_web":3.5,"t_divider":3.0,"area_mm2":7064.0,"mass_kg_per_m2":13.4216,"ix_cm4":704.3960666666668,"zx_cm3":201.25601904761908,"ei_kNm2":298.66393226666673,"ei_per_kg":22.2524834793666,"mid_webs":0,"clear_bay_mm":930.0,"wrinkling_MPa":40.46336167283227,"bare_skin_buckling_MPa":0.5448638879365617,"web_buckling_MPa":689.5215162333983,"wall":{"bending_mm":1.1687918498701062,"shear_mm":0.2358059820692498,"total_mm":1.404597831939356,"span_over_delta":1926.530098842437,"moment_Nmm":457652.25,"stress_MPa":2.27398043629053},"floor":{"bending_mm":2.8928836282399315,"shear_mm":0.7419620774938169,"total_mm":3.634845705733748,"span_over_delta":660.2756194614109,"moment_Nmm":1440000.0,"stress_MPa":7.1550655071800975},"rects":[{"x":0.0,"y":0.0,"w":1000.0,"h":3.0},{"x":0.0,"y":67.0,"w":1000.0,"h":3.0},{"x":0.0,"y":3.0,"w":3.5,"h":64.0},{"x":31.5,"y":3.0,"w":3.5,"h":64.0},{"x":965.0,"y":3.0,"w":3.5,"h":64.0},{"x":996.5,"y":3.0,"w":3.5,"h":64.0},{"x":3.5,"y":33.5,"w":28.0,"h":3.0},{"x":968.5,"y":33.5,"w":28.0,"h":3.0}]},{"key":"D","title":"D \u2014 3 mm throughout, split edge cell","note":"Lightest. Divider splits the edge-cell wall height.","t_skin":3.0,"t_web":3.0,"t_divider":3.0,"area_mm2":6942.0,"mass_kg_per_m2":13.1898,"ix_cm4":700.02745,"zx_cm3":200.00784285714286,"ei_kNm2":296.8116388,"ei_per_kg":22.503118985883034,"mid_webs":0,"clear_bay_mm":930.0,"wrinkling_MPa":40.46336167283227,"bare_skin_buckling_MPa":0.5448638879365617,"web_buckling_MPa":506.5872364163743,"wall":{"bending_mm":1.176085854634072,"shear_mm":0.2716359508547009,"total_mm":1.4477218054887728,"span_over_delta":1869.1436363952628,"moment_Nmm":457652.25,"stress_MPa":2.2881715209882127},"floor":{"bending_mm":2.9109370626203357,"shear_mm":0.8547008547008547,"total_mm":3.7656379173211905,"span_over_delta":637.342212048714,"moment_Nmm":1440000.0,"stress_MPa":7.199717668214297},"rects":[{"x":0.0,"y":0.0,"w":1000.0,"h":3.0},{"x":0.0,"y":67.0,"w":1000.0,"h":3.0},{"x":0.0,"y":3.0,"w":3.0,"h":64.0},{"x":32.0,"y":3.0,"w":3.0,"h":64.0},{"x":965.0,"y":3.0,"w":3.0,"h":64.0},{"x":997.0,"y":3.0,"w":3.0,"h":64.0},{"x":3.0,"y":33.5,"w":29.0,"h":3.0},{"x":968.0,"y":33.5,"w":29.0,"h":3.0}]},{"key":"E","title":"E \u2014 D plus one intermediate web (proposed)","note":"D with one mid web: 483 mm skin bays instead of 930 mm.","t_skin":3.0,"t_web":3.0,"t_divider":3.0,"area_mm2":7134.0,"mass_kg_per_m2":13.5546,"ix_cm4":706.58105,"zx_cm3":201.88029999999998,"ei_kNm2":299.5903652,"ei_per_kg":22.10248662446697,"mid_webs":1,"clear_bay_mm":465.0,"wrinkling_MPa":40.46336167283227,"bare_skin_buckling_MPa":2.179455551746247,"web_buckling_MPa":506.5872364163743,"wall":{"bending_mm":1.1651775571968144,"shear_mm":0.1865835983365949,"total_mm":1.3517611555334093,"span_over_delta":2001.8329339639915,"moment_Nmm":457652.25,"stress_MPa":2.2669485333635824},"floor":{"bending_mm":2.883937871043391,"shear_mm":0.5870841487279843,"total_mm":3.4710220197713753,"span_over_delta":691.4390016338992,"moment_Nmm":1440000.0,"stress_MPa":7.132939667713988},"rects":[{"x":0.0,"y":0.0,"w":1000.0,"h":3.0},{"x":0.0,"y":67.0,"w":1000.0,"h":3.0},{"x":0.0,"y":3.0,"w":3.0,"h":64.0},{"x":32.0,"y":3.0,"w":3.0,"h":64.0},{"x":965.0,"y":3.0,"w":3.0,"h":64.0},{"x":997.0,"y":3.0,"w":3.0,"h":64.0},{"x":3.0,"y":33.5,"w":29.0,"h":3.0},{"x":968.0,"y":33.5,"w":29.0,"h":3.0},{"x":498.5,"y":3.0,"w":3.0,"h":64.0}]}]}/*DATA*/;
+const COLORS = {A:0xe8923a, B:0xc0564a, C:0x5fb8d8, D:0x7bd389, E:0xb98ce0};
+
+let mode = 'wall', playing = true, exagg = 200, trueScale = false, sel = 'D';
+
+/* ---------- 3D scene ---------- */
+const host = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+host.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1a1d21);
+scene.fog = new THREE.Fog(0x1a1d21, 6000, 16000);
+const camera = new THREE.PerspectiveCamera(45, 1, 10, 40000);
+camera.position.set(3200, 2400, 4200);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0, 0);
+controls.enableDamping = true;
+
+scene.add(new THREE.HemisphereLight(0xdfefff, 0x20262e, 1.15));
+const key = new THREE.DirectionalLight(0xffffff, 1.5);
+key.position.set(2500, 4000, 2500); scene.add(key);
+
+const SEG = 60, MODULE_W = 1000, DEPTH = 70, PITCH = 1350;
+const panels = [];
+
+function label(text, color){
+  const c = document.createElement('canvas'); c.width = 256; c.height = 64;
+  const g = c.getContext('2d');
+  g.fillStyle = '#0e1216'; g.fillRect(0,0,256,64);
+  g.strokeStyle = color; g.lineWidth = 4; g.strokeRect(2,2,252,60);
+  g.fillStyle = '#e6edf3'; g.font = 'bold 38px system-ui'; g.textAlign = 'center';
+  g.fillText(text, 128, 46);
+  const t = new THREE.CanvasTexture(c);
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({map:t, depthTest:false}));
+  s.scale.set(420, 105, 1);
+  return s;
+}
+
+DATA.results.forEach((r, i) => {
+  const geo = new THREE.BoxGeometry(1, DEPTH, MODULE_W, SEG, 1, 1);
+  const mat = new THREE.MeshStandardMaterial({
+    color: COLORS[r.key], roughness:.55, metalness:.05,
+    transparent:true, opacity:.93});
+  const mesh = new THREE.Mesh(geo, mat);
+  const stretch = new THREE.Group();          // scaled along the span only
+  stretch.add(mesh);
+  const grp = new THREE.Group();              // never scaled — carries the label
+  grp.add(stretch);
+  grp.position.z = (i - (DATA.results.length - 1) / 2) * PITCH;
+  const lb = label(r.key, '#' + COLORS[r.key].toString(16).padStart(6,'0'));
+  lb.position.set(0, 420, 0);
+  grp.add(lb);
+  scene.add(grp);
+  panels.push({r, grp, stretch, mesh,
+               base: geo.attributes.position.array.slice()});
+});
+
+// ground grid for scale
+const grid = new THREE.GridHelper(14000, 28, 0x33404d, 0x232c35);
+grid.position.y = -400; scene.add(grid);
+
+function spanOf(){ return mode === 'wall' ? 2706 : 2400; }
+
+function layout(){
+  const L = spanOf();
+  panels.forEach(p => { p.stretch.scale.x = L; });   // box is built at length 1
+}
+
+/* deflected shape of a simply supported uniformly loaded beam,
+   normalised so max = 1 at mid-span. x in [-0.5, 0.5] */
+function shape(u){
+  const x = u + 0.5;                                   // 0..1
+  return (16/5) * (x**4 - 2*x**3 + x);                 // peak 1.0 at x=0.5
+}
+
+function deform(t){
+  panels.forEach(p => {
+    const d = p.r[mode].total_mm * (trueScale ? 1 : exagg);
+    const pos = p.mesh.geometry.attributes.position;
+    const arr = pos.array, base = p.base;
+    for (let i = 0; i < arr.length; i += 3){
+      arr[i+1] = base[i+1] - shape(base[i]) * d * t;  // X scaling never touches Y
+    }
+    pos.needsUpdate = true;
+    p.mesh.geometry.computeVertexNormals();
+  });
+}
+
+let t0 = 0;
+function tick(ms){
+  requestAnimationFrame(tick);
+  if (!t0) t0 = ms;
+  const el = (ms - t0) / 1000;
+  const load = playing ? (1 - Math.cos(el * 1.4)) / 2 : 1;
+  deform(load);
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+function resize(){
+  const w = host.clientWidth || innerWidth, h = host.clientHeight || innerHeight;
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+  renderer.setSize(w, h, false);
+}
+addEventListener('resize', resize);
+
+/* ---------- readout cards ---------- */
+const maxMass = Math.max(...DATA.results.map(r => r.mass_kg_per_m2));
+const maxWeb  = Math.max(...DATA.results.map(r => r.web_buckling_MPa));
+
+function cards(){
+  const el = document.getElementById('cards');
+  el.innerHTML = DATA.results.map(r => {
+    const d = r[mode];
+    const col = '#' + COLORS[r.key].toString(16).padStart(6,'0');
+    return `<div class="card ${r.key===sel?'sel':''}" data-k="${r.key}">
+      <div class="nm" style="color:${col}">${r.key} — ${r.t_web} mm walls /
+        ${r.t_skin} mm skins${r.t_divider>0?' · split cell':''}${r.mid_webs?' · +1 mid web':''}</div>
+      <div class="kv">
+        Mass <b>${r.mass_kg_per_m2.toFixed(2)} kg/m²</b> ·
+        EI <b>${r.ei_kNm2.toFixed(0)} kNm²</b> ·
+        stiffness per kg <b>${r.ei_per_kg.toFixed(1)}</b><br>
+        Deflection <b>${d.total_mm.toFixed(2)} mm</b> = L/<b>${d.span_over_delta.toFixed(0)}</b> ·
+        stress <b>${d.stress_MPa.toFixed(1)} MPa</b><br>
+        Web buckling <b>${r.web_buckling_MPa.toFixed(0)} MPa</b> ·
+        skin bay <b>${r.clear_bay_mm.toFixed(0)} mm</b>
+      </div>
+      <div class="bar"><i style="width:${100*r.mass_kg_per_m2/maxMass}%;background:${col}"></i></div>
+    </div>`;
+  }).join('');
+  [...el.querySelectorAll('.card')].forEach(c =>
+    c.onclick = () => { sel = c.dataset.k; cards(); section(); });
+}
+
+/* ---------- cross-section SVG ---------- */
+function section(){
+  const r = DATA.results.find(x => x.key === sel);
+  const svg = document.getElementById('sectSvg');
+  const VE = 1.6;                       // vertical exaggeration for legibility
+  const H = DEPTH * VE, top = 20;
+  const shapes = r.rects.map(q =>
+    `<rect x="${q.x}" y="${top + (DEPTH - q.y - q.h) * VE}" width="${q.w}"
+      height="${q.h * VE}" fill="#f2c811" stroke="#1a1d21" stroke-width="0.8"/>`).join('');
+  const core = `<rect x="35" y="${top + r.t_skin*VE}" width="930"
+      height="${(DEPTH - 2*r.t_skin) * VE}" fill="#6f8f64" opacity=".45"/>`;
+  const dim = `
+    <line x1="0" y1="${top+H+16}" x2="1000" y2="${top+H+16}" stroke="#8fa3b8" stroke-width="1"/>
+    <text x="500" y="${top+H+31}" fill="#9fb3c8" font-size="13" text-anchor="middle">1000 mm module</text>
+    <text x="500" y="${top-6}" fill="#9fb3c8" font-size="12" text-anchor="middle">
+      ${r.clear_bay_mm.toFixed(0)} mm unsupported skin bay</text>`;
+  svg.setAttribute('viewBox', `-10 0 1020 ${top + H + 42}`);
+  svg.innerHTML = core + shapes + dim;
+  document.getElementById('sectTitle').textContent =
+    `Section ${r.key} — ${r.note}  (depth shown ×${VE} for legibility; green = bonded core)`;
+}
+
+/* ---------- controls ---------- */
+const bWall = document.getElementById('bWall'), bFloor = document.getElementById('bFloor');
+bWall.onclick = () => { mode='wall'; bWall.classList.add('on'); bFloor.classList.remove('on');
+                        layout(); cards(); };
+bFloor.onclick = () => { mode='floor'; bFloor.classList.add('on'); bWall.classList.remove('on');
+                         layout(); cards(); };
+const bPlay = document.getElementById('bPlay');
+bPlay.onclick = () => { playing = !playing; bPlay.textContent = playing ? '⏸ Pause' : '▶ Play';
+                        bPlay.classList.toggle('on', playing); };
+const bReal = document.getElementById('bReal');
+bReal.onclick = () => { trueScale = !trueScale; bReal.classList.toggle('on', trueScale);
+                        bReal.textContent = trueScale ? '↩ Back to magnified' : 'Show true scale'; };
+const ex = document.getElementById('ex');
+ex.oninput = () => { exagg = +ex.value; document.getElementById('exVal').textContent = '×' + exagg; };
+
+resize(); layout(); cards(); section(); requestAnimationFrame(tick);
+</script>
+</body>
+</html>
