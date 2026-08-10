@@ -337,23 +337,13 @@ function installedFrontBackFacade(x,dir){
 }
 installedFrontBackFacade(0,1);
 installedFrontBackFacade(L,-1);
-function installedLongClosingBeams(){
- const g=new THREE.Group(); scene.add(g); installGroups.horizontal.push(g);
- // Step 4 beams run the whole house length, exactly along the roof-wing/side-wall joint.
- const beamY=(WALL_Y1+ROOF_UNDERSIDE)/2, beamH=ROOF_UNDERSIDE-WALL_Y1;
- for(const z of [ZF1-D-0.038,ZF2+D+0.038]){
-   box(g,[L/2,beamY,z],[L,beamH,T],MAT.r);
- }
- return g;
-}
-installedLongClosingBeams();
+
 label3d('walls / roof ribs\\n600 mm max spacing',[L*0.63,2.02,Z2+D*0.50],0.42);
 label3d('floor joists 610 mm\\n+ cross blocking rows',[L*0.64,0.72,Z2+D*0.50],0.38);
 label3d('single 70x35x4 FRP\\nno square outer frame',[L*0.60,2.92,Z2+D*0.46],0.40);
 label3d('3 mm FRP skins + bonded rigid core\\nrequired to stop skin buckling',[L*0.33,1.35,Z1-0.45],0.40);
 label3d('D&D stainless butt hinge\\n304.8x127 mm, 18 mm barrel',[L*0.18,2.42,Z2+0.18],0.38);
 label3d('PDF sequence: roof first\\nthen floor+walls, then wall upright',[L*0.50,3.28,Z1-0.70],0.40);
-label3d('Step 4 beams: full length\\nseated in end pockets / brackets',[L*0.50,2.58,Z1-D-0.28],0.36);
 label3d('facade modules sit on floor wing\\nand touch roof wing',[L*0.08,1.55,Z1-D+0.50],0.35);
 label3d('openings need edge closeouts\\nand reinforced local backing',[L*0.07,1.02,Z2+D-0.36],0.34);
 
@@ -373,17 +363,15 @@ function setFold(t){ // t=0 folded for transport, t=1 deployed house
   w.rp.position.z =  Z2+(1-tr)*PARK;              // stored: roof hangs outboard of the stack
  }
  for(const g of installedFacades) g.visible=t>=0.64;
- for(const g of installGroups.horizontal) g.visible=t>=0.64;
  for(const g of installGroups.doors) g.visible=t>=0.78;
  for(const g of installGroups.windows) g.visible=t>=0.90;
  const st=document.getElementById('stage');
  st.textContent = t<=0.01?'Folded for transport, 2.506 m envelope width':
-   t<0.22?'1/6: unfold roof wings first':
-   t<0.46?'2/6: unfold floor panels with walls still hinged to the floors':
-   t<0.64?'3/6: unfold / stand up the side walls':
-   t<0.78?'4/6: install horizontal beams between roof wings and side walls':
-   t<0.90?'5/6: install vertical beams and doors':
-   t<0.99?'6/6: install VIG windows':
+   t<0.22?'1/5: unfold roof wings first':
+   t<0.46?'2/5: unfold floor panels with walls still hinged to the floors':
+   t<0.70?'3/5: unfold / stand up the side walls':
+   t<0.90?'4/5: install door modules and their edge rails':
+   t<0.99?'5/5: install VIG windows':
    'Expanded 7.46 x 6.058 m footprint; lock and seal the fold joints';}
 
 /* ============ UI ============ */
