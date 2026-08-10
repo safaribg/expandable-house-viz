@@ -146,17 +146,19 @@ const BEST = {bend:'SV', col:'S', tor:'S'};
 const BEST35 = {bend:'V', col:'M', tor:'M'};
 
 let mode='bend', playing=true, ex=1.0, sel='SV';
+let items=[], controls=null, renderer=null, scene=null, camera=null;
 
+function init3d(){
 const host=document.getElementById('scene');
-const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 host.appendChild(renderer.domElement);
-const scene=new THREE.Scene();
+scene=new THREE.Scene();
 scene.background=new THREE.Color(0x1a1d21);
 scene.fog=new THREE.Fog(0x1a1d21,5000,14000);
-const camera=new THREE.PerspectiveCamera(45,1,10,40000);
+camera=new THREE.PerspectiveCamera(45,1,10,40000);
 camera.position.set(2100,1500,3100);
-const controls=new OrbitControls(camera,renderer.domElement);
+controls=new OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true;
 scene.add(new THREE.HemisphereLight(0xdfefff,0x20262e,1.15));
 const key=new THREE.DirectionalLight(0xffffff,1.5);
@@ -193,7 +195,6 @@ function label(text,color){
   s.scale.set(300,75,1);
   return s;
 }
-const items=[];
 P.forEach((p,i)=>{
   const geo=mergeBoxes(p.rects,p.W,p.H);
   const mesh=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({
@@ -235,6 +236,7 @@ function deform(t){
 }
 let t0=0;
 function tick(ms){
+  if(!renderer)return;
   requestAnimationFrame(tick);
   if(!t0)t0=ms;
   const load=playing?(1-Math.cos((ms-t0)/1000*1.3))/2:1;
@@ -243,11 +245,15 @@ function tick(ms){
   renderer.render(scene,camera);
 }
 function resize(){
+  if(!renderer)return;
+  const host=document.getElementById('scene');
   const w=host.clientWidth||innerWidth,h=host.clientHeight||innerHeight;
   camera.aspect=w/h;camera.updateProjectionMatrix();
   renderer.setSize(w,h,false);
 }
 addEventListener('resize',resize);
+resize();requestAnimationFrame(tick);
+}
 
 function cards(){
   const m=MODES[mode];
@@ -292,7 +298,8 @@ const exEl=document.getElementById('ex');
 exEl.oninput=()=>{ex=exEl.value/100;
   document.getElementById('exVal').textContent='×'+ex.toFixed(1);};
 
-resize();cards();section();requestAnimationFrame(tick);
+cards();section();
+try{init3d();}catch(e){console.warn('3D unavailable:',e);}
 </script>
 </body>
 </html>
