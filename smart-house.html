@@ -295,13 +295,14 @@ function installedFrontBackFacade(x,dir){
  g.position.set(x,FLD,ZF1-D);
  scene.add(g); installedFacades.push(g);
  const x0=dir>0?0:-P_D;
+ const FH=ROOF_UNDERSIDE-FLD;   // doors/windows reach the roof profile
  const fullW=D+FCOREW+D;
  // Always-visible front/back frame outline and core division lines after expansion.
- box(g,[x0+P_D/2,HW-P_W/2,fullW/2],[P_D,P_W,fullW],MAT.e);
+ box(g,[x0+P_D/2,FH-P_W/2,fullW/2],[P_D,P_W,fullW],MAT.e);
  box(g,[x0+P_D/2,P_W/2,fullW/2],[P_D,P_W,fullW],MAT.e);
  for(const z of [P_W/2,D-P_W/2,D+CORE+P_W/2,fullW-P_W/2])
-   box(g,[x0+P_D/2,HW/2,z],[P_D,HW,P_W],MAT.e);
- for(const y of [HW/3,2*HW/3])
+   box(g,[x0+P_D/2,FH/2,z],[P_D,FH,P_W],MAT.e);
+ for(const y of [FH/3,2*FH/3])
    box(g,[x0+P_D/2,y,D+FCOREW/2],[P_D,P_W,FCOREW-2*P_W],MAT.f);
  // Step 5: vertical beam lines plus doors, installed after the main frame is open.
  const dg=new THREE.Group(); g.add(dg); installGroups.doors.push(dg);
@@ -318,9 +319,9 @@ function installedFrontBackFacade(x,dir){
    const a=layoutWing(side);
    const doorZ=a.door0+a.doorW/2;
    const beamZs=side<0?[a.door0-a.beamW/2,a.w10-a.beamW/2]:[a.door0+a.doorW+a.beamW/2,a.w10+a.winW+a.beamW/2];
-   for(const bz of beamZs) box(dg,[x0+P_D/2,HW/2,bz],[P_D,HW,a.beamW],MAT.e);
-   box(dg,[x0+P_D/2,HW/2,doorZ],[P_D,HW,a.doorW],MAT.c);
-   box(dg,[x0+P_D*1.05,HW/2,doorZ],[0.018,HW-0.14,a.doorW-0.14],MAT.c);
+   for(const bz of beamZs) box(dg,[x0+P_D/2,FH/2,bz],[P_D,FH,a.beamW],MAT.e);
+   box(dg,[x0+P_D/2,FH/2,doorZ],[P_D,FH,a.doorW],MAT.c);
+   box(dg,[x0+P_D*1.05,FH/2,doorZ],[0.018,FH-0.14,a.doorW-0.14],MAT.c);
  }
  // Step 6: windows, installed last.
  const wg=new THREE.Group(); g.add(wg); installGroups.windows.push(wg);
@@ -328,8 +329,8 @@ function installedFrontBackFacade(x,dir){
    const a=layoutWing(side);
    for(const z0 of [a.w10,a.w20]){
      const z=z0+a.winW/2;
-     box(wg,[x0+P_D/2,HW/2,z],[P_D,HW,a.winW],MAT.w);
-     box(wg,[x0+P_D*1.05,HW/2,z],[0.0124,HW-0.14,a.winW-0.12],MAT.v);
+     box(wg,[x0+P_D/2,FH/2,z],[P_D,FH,a.winW],MAT.w);
+     box(wg,[x0+P_D*1.05,FH/2,z],[0.0124,FH-0.14,a.winW-0.12],MAT.v);
    }
  }
  return g;
