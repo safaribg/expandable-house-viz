@@ -76,10 +76,10 @@ const SKIN=0.003, P_W=0.035, P_D=0.07; // 3 mm skins + single 70x35x4 profiles
 const HINGE_LEN=0.3048, HINGE_W=0.127, HINGE_PIN_D=0.018, HINGE_THICK=0.0047;
 const FLOOR_TOP=FLD, ROOF_TOP=H;
 const HW=2.515;                        // wall height 251.5 cm per 2026-08-10 drawings
-const ROOF_HINGE=FLD+HW+T;             // 2.655 — wing roof sits exactly on the wall top
-const ROOF_UNDERSIDE=ROOF_HINGE-T;     // = FLD+HW = 2.585
-const ROOF_D=D+0.076;                  // roof wings cover the 7.6 cm wall thickness
-const WALL_Y0=FLD, WALL_Y1=ROOF_UNDERSIDE;
+const ROOF_D=2.55;                     // wing roof panel 255 cm (front-folded drawing)
+const ROOF_UNDERSIDE=H-T;              // flat roof: wing roofs coplanar with the core roof
+const PARK=0.15;                       // folded roof hangs outboard of the wall+floor stack
+const WALL_Y0=FLD, WALL_Y1=FLD+HW;     // wall top 258.5; gap to roof closed by step-4 beams
 
 const scene=new THREE.Scene(); scene.background=new THREE.Color(0x1a1d21);
 const cam=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.1,200);
@@ -253,14 +253,14 @@ const core=new THREE.Group(); scene.add(core);
    // small window in core end (bathroom/kitchen ventilation)
    w.add(ep); core.add(w);}
  // corner posts + hinge rails (yellow) on long edges
- for(const z of [Z1+P_D/2,Z2-P_D/2]) for(const x of [P_W/2,L-P_W/2])
+ for(const z of [Z1+0.08+P_D/2,Z2-0.08-P_D/2]) for(const x of [P_W/2,L-P_W/2])
    box(core,[x,(FLD+H-T)/2,z],[P_W,H-T-FLD,P_D],MAT.e);
- hingeRod(core,[L/2,ROOF_HINGE-0.03,Z1],L);                       // roof hinge lines at the
- hingeRod(core,[L/2,ROOF_HINGE-0.03,Z2],L);                       //  wing-roof datum (2.655)
+ hingeRod(core,[L/2,ROOF_TOP-0.03,Z1],L);                         // roof hinge lines on the
+ hingeRod(core,[L/2,ROOF_TOP-0.03,Z2],L);                         //  flat 270.6 roof datum
  hingeRod(core,[L/2,FLOOR_TOP+0.03,Z1],L);                        // floor hinge lines on same
  hingeRod(core,[L/2,FLOOR_TOP+0.03,Z2],L);                        //  flat floor datum
  for(const z of [Z1,Z2]){
-   box(core,[L/2,ROOF_HINGE-0.07,z],[L,0.035,0.045],MAT.p);
+   box(core,[L/2,ROOF_TOP-0.07,z],[L,0.035,0.045],MAT.p);
    box(core,[L/2,FLOOR_TOP+0.07,z],[L,0.035,0.045],MAT.p);
  }
 }
@@ -285,10 +285,10 @@ function makeWing(openings,mirror){
  // Stored (t=0) it lies flat ONTO the floor pointing toward the core (−z), so when the
  // floor stands up the 2.55 m wall fits under the 2.70 m height instead of protruding.
  const ow=new THREE.Group(); ow.position.set(0,0,D); fp.add(ow);
- const wPan=wallPanel(HW,openings,L); wPan.position.set(0,0,0); ow.add(wPan);
+ const wPan=wallPanel(HW,openings,L); wPan.position.set(0,0,-0.076); ow.add(wPan);
  hingeRod(ow,[L/2,0.0,0.0],L);
  // ROOF: pivot = shared finished roof datum; wing roof extends over the wall thickness.
- const rp=new THREE.Group(); rp.position.set(0,ROOF_HINGE,Z2); root.add(rp);
+ const rp=new THREE.Group(); rp.position.set(0,ROOF_TOP,Z2); root.add(rp);
  rp.add(slabPanel(ROOF_D,0.61,true,true));
  wing.fp=fp; wing.ow=ow; wing.rp=rp;
  return wing;}
@@ -344,10 +344,11 @@ installedFrontBackFacade(L,-1);
 function installedLongClosingBeams(){
  const g=new THREE.Group(); scene.add(g); installGroups.horizontal.push(g);
  // Step 4 beams run the whole house length, exactly along the roof-wing/side-wall joint.
- for(const z of [Z1-D-T/2,Z2+D+T/2]){
-   box(g,[L/2,ROOF_UNDERSIDE-P_W/2,z],[L,P_W,T],MAT.r);
+ const beamY=(WALL_Y1+ROOF_UNDERSIDE)/2, beamH=ROOF_UNDERSIDE-WALL_Y1;
+ for(const z of [Z1-D+0.038,Z2+D-0.038]){
+   box(g,[L/2,beamY,z],[L,beamH,T],MAT.r);
    for(const x of [P_D/2,L-P_D/2])
-     box(g,[x,ROOF_UNDERSIDE-P_W/2,z],[P_D*1.25,P_W*2.2,T*1.35],MAT.p);
+     box(g,[x,beamY,z],[P_D*1.25,beamH*1.6,T*1.35],MAT.p);
  }
  return g;
 }
@@ -375,6 +376,7 @@ function setFold(t){ // t=0 folded for transport, t=1 deployed house
   w.fp.rotation.x = -(1-tf)*(Math.PI/2);          // stored: floor vertical against core
   w.ow.rotation.x = -(1-tw)*(Math.PI/2);          // stored: wall lying flat on floor (toward core)
   w.rp.rotation.x =  (1-tr)*(Math.PI/2);          // stored: roof vertical, opens before floor
+  w.rp.position.z =  Z2+(1-tr)*PARK;              // stored: roof hangs outboard of the stack
  }
  for(const g of installedFacades) g.visible=t>=0.64;
  for(const g of installGroups.horizontal) g.visible=t>=0.64;
