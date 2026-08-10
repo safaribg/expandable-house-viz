@@ -38,7 +38,6 @@
   <span class="sw" style="background:#9fb8c8"></span>70x35x4 field profiles, installed with the panel frame<br>
   <span class="sw" style="background:#e8923a"></span>single 70x35x4 perimeter/opening rails; no square frame by default<br>
   <span class="sw" style="background:#c0564a"></span>heavier floor/base rails<br>
-  <span class="sw" style="background:#7bd389"></span>local inserts / beam pockets / hard-zone backing<br>
   <span class="sw" style="background:#ffd54a"></span>D&D butt hinges: 304.8x127 mm, 18 mm barrel, 4.7 mm leaf<br>
   <span class="sw" style="background:#5fb8d8;opacity:.5"></span>3 mm FRP skins + bonded rigid core; 12.4 mm VIG panes
 </div>
@@ -254,12 +253,12 @@ const core=new THREE.Group(); scene.add(core);
    const ep=endPanel(Z2-Z1,H-FLD-T);
    // small window in core end (bathroom/kitchen ventilation)
    w.add(ep); core.add(w);}
+ for(const x of [P_D/2,L-P_D/2]) for(const z of [ZF1+P_D/2,ZF2-P_D/2])
+   box(core,[x,(FLD+ROOF_UNDERSIDE)/2,z],[P_D,ROOF_UNDERSIDE-FLD,P_D],MAT.f);
  hingeRod(core,[L/2,ROOF_TOP-0.03,Z1],L);                         // roof hinge lines on the
  hingeRod(core,[L/2,ROOF_TOP-0.03,Z2],L);                         //  flat 270.6 roof datum
  hingeRod(core,[L/2,FLOOR_TOP+0.03,ZF1],L);                       // floor hinge lines on the
  hingeRod(core,[L/2,FLOOR_TOP+0.03,ZF2],L);                       //  220 cm main-floor edges
- for(const z of [Z1,Z2]) box(core,[L/2,ROOF_TOP-0.07,z],[L,0.035,0.045],MAT.p);
- for(const z of [ZF1,ZF2]) box(core,[L/2,FLOOR_TOP+0.07,z],[L,0.035,0.045],MAT.p);
 }
 
 /* ============ WINGS (animated) ============ */
@@ -319,7 +318,7 @@ function installedFrontBackFacade(x,dir){
    const a=layoutWing(side);
    const doorZ=a.door0+a.doorW/2;
    const beamZs=side<0?[a.door0-a.beamW/2,a.w10-a.beamW/2]:[a.door0+a.doorW+a.beamW/2,a.w10+a.winW+a.beamW/2];
-   for(const bz of beamZs) box(dg,[x0+P_D/2,HW/2,bz],[P_D,HW,a.beamW],MAT.r);
+   for(const bz of beamZs) box(dg,[x0+P_D/2,HW/2,bz],[P_D,HW,a.beamW],MAT.e);
    box(dg,[x0+P_D/2,HW/2,doorZ],[P_D,HW,a.doorW],MAT.c);
    box(dg,[x0+P_D*1.05,HW/2,doorZ],[0.018,HW-0.14,a.doorW-0.14],MAT.c);
  }
@@ -343,8 +342,6 @@ function installedLongClosingBeams(){
  const beamY=(WALL_Y1+ROOF_UNDERSIDE)/2, beamH=ROOF_UNDERSIDE-WALL_Y1;
  for(const z of [ZF1-D-0.038,ZF2+D+0.038]){
    box(g,[L/2,beamY,z],[L,beamH,T],MAT.r);
-   for(const x of [P_D/2,L-P_D/2])
-     box(g,[x,beamY,z],[P_D*1.25,beamH*1.6,T*1.35],MAT.p);
  }
  return g;
 }
