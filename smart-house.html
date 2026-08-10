@@ -247,12 +247,6 @@ const core=new THREE.Group(); scene.add(core);
  for(let x=0.61;x<L-0.1;x+=0.61) box(core,[x,H-T/2,(Z1+Z2)/2],[P_W,P_D,Wc-2*P_W],MAT.f);
  box(core,[L/2,ROOF_TOP+SKIN/2,(Z1+Z2)/2],[L,SKIN,Wc],MAT.s);
  box(core,[L/2,ROOF_TOP-T-SKIN/2,(Z1+Z2)/2],[L,SKIN,Wc],MAT.s);
- // end walls of core (x=0, x=L) with small service windows
- for(const [xe,dir] of [[0,1],[L,-1]]){
-   const w=new THREE.Group(); w.position.set(xe-(dir<0?T:0),FLD,Z1);
-   const ep=endPanel(Z2-Z1,H-FLD-T);
-   // small window in core end (bathroom/kitchen ventilation)
-   w.add(ep); core.add(w);}
  for(const x of [P_D/2,L-P_D/2]) for(const z of [ZF1+P_D/2,ZF2-P_D/2])
    box(core,[x,(FLD+ROOF_UNDERSIDE)/2,z],[P_D,ROOF_UNDERSIDE-FLD,P_D],MAT.f);
  hingeRod(core,[L/2,ROOF_TOP-0.03,Z1],L);                         // roof hinge lines on the
@@ -338,14 +332,6 @@ function installedFrontBackFacade(x,dir){
 installedFrontBackFacade(0,1);
 installedFrontBackFacade(L,-1);
 
-label3d('walls / roof ribs\\n600 mm max spacing',[L*0.63,2.02,Z2+D*0.50],0.42);
-label3d('floor joists 610 mm\\n+ cross blocking rows',[L*0.64,0.72,Z2+D*0.50],0.38);
-label3d('single 70x35x4 FRP\\nno square outer frame',[L*0.60,2.92,Z2+D*0.46],0.40);
-label3d('3 mm FRP skins + bonded rigid core\\nrequired to stop skin buckling',[L*0.33,1.35,Z1-0.45],0.40);
-label3d('D&D stainless butt hinge\\n304.8x127 mm, 18 mm barrel',[L*0.18,2.42,Z2+0.18],0.38);
-label3d('PDF sequence: roof first\\nthen floor+walls, then wall upright',[L*0.50,3.28,Z1-0.70],0.40);
-label3d('facade modules sit on floor wing\\nand touch roof wing',[L*0.08,1.55,Z1-D+0.50],0.35);
-label3d('openings need edge closeouts\\nand reinforced local backing',[L*0.07,1.02,Z2+D-0.36],0.34);
 
 /* ============ FOLD ANIMATION ============ */
 // Authoritative PDF order (2026-06-14):
