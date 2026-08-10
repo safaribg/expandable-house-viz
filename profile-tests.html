@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>FRP profiles M · L · V · S · SV — bending, column, torsion</title>
+<style>
+  :root{color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;background:#1a1d21;color:#e6edf3;font-family:system-ui,-apple-system,sans-serif}
+  #scene{position:fixed;inset:0;z-index:0}
+  .pane{position:fixed;z-index:5;background:rgba(12,15,18,.84);backdrop-filter:blur(6px);
+        border:1px solid #2c343d;border-radius:10px;padding:12px 14px}
+  #ui{top:12px;left:12px;max-width:340px}
+  #ui h1{font-size:15px;margin:0 0 2px}
+  #ui .sub{font-size:11.5px;color:#8fa3b8;margin:0 0 10px;line-height:1.45}
+  button{margin:0 5px 6px 0;padding:7px 12px;border:0;border-radius:6px;cursor:pointer;
+         background:#2e3440;color:#e6edf3;font-size:13px}
+  button.on{background:#3a7bd5}
+  label.row{display:block;font-size:11.5px;color:#9fb3c8;margin:8px 0 2px}
+  input[type=range]{width:100%}
+  #modeNote{font-size:11px;color:#9fb3c8;margin-top:8px;line-height:1.5;border-top:1px solid #2c343d;padding-top:8px}
+  #readout{position:fixed;z-index:5;right:12px;top:12px;width:330px;max-height:calc(100vh - 24px);
+           overflow:auto;background:rgba(12,15,18,.84);backdrop-filter:blur(6px);
+           border:1px solid #2c343d;border-radius:10px;padding:12px 14px}
+  #readout h2{font-size:13px;margin:0 0 8px;color:#fff}
+  .card{border:1px solid #2c343d;border-radius:8px;padding:8px 10px;margin-bottom:7px;background:#161b21;cursor:pointer}
+  .card.sel{border-color:#3a7bd5;background:#18202b}
+  .card .nm{font-size:13px;font-weight:600}
+  .card .kv{font-size:11.5px;color:#9fb3c8;margin-top:3px;line-height:1.5}
+  .card .kv b{color:#e6edf3;font-weight:600}
+  .chip{display:inline-block;font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:4px;
+        background:#1d5c2e;color:#c9f2d0;margin-left:6px;vertical-align:1px}
+  .chip.warn{background:#5c452a;color:#f2ddc0}
+  #sect{position:fixed;z-index:5;left:12px;bottom:12px;right:354px;
+        background:rgba(12,15,18,.84);backdrop-filter:blur(6px);
+        border:1px solid #2c343d;border-radius:10px;padding:10px 12px}
+  #sect .t{font-size:11.5px;color:#9fb3c8;margin-bottom:4px}
+  #sect .wrap{display:flex;gap:14px;align-items:flex-start}
+  #sect svg{display:block;height:120px;width:auto;flex:0 0 auto}
+  #findings{font-size:11px;color:#9fb3c8;line-height:1.55}
+  #findings b{color:#e6edf3}
+  @media (max-width:900px){
+    #readout{position:static;width:auto;max-height:none;margin:12px;backdrop-filter:none;background:#12161b}
+    #ui{position:static;max-width:none;margin:12px;backdrop-filter:none;background:#12161b}
+    #sect{position:static;right:auto;margin:12px;backdrop-filter:none;background:#12161b}
+    #sect .wrap{flex-direction:column}
+    #scene{position:relative;height:50vh;inset:auto;display:block}
+    body{overflow:auto}
+  }
+</style>
+</head>
+<body>
+<div id="scene"></div>
+
+<div class="pane" id="ui">
+  <h1>Profile tests — M · L · V · S · SV</h1>
+  <p class="sub">Everything from the 2026-08-10 session in one place: Ivan's M, L, R(=M), S
+     and the proposed V and SV, under the three load cases. Drag to orbit.</p>
+  <div>
+    <button id="mBend" class="on">Bending</button>
+    <button id="mCol">Column 2.7 m</button>
+    <button id="mTor">Torsion</button>
+  </div>
+  <div>
+    <button id="bPlay" class="on">⏸ Pause</button>
+  </div>
+  <label class="row">Deformation exaggeration: <span id="exVal">×1.0</span></label>
+  <input type="range" id="ex" min="10" max="300" value="100">
+  <div id="modeNote"></div>
+</div>
+
+<div id="readout"><h2 id="resTitle">Results</h2><div id="cards"></div>
+  <div id="findings" style="margin-top:10px;border-top:1px solid #2c343d;padding-top:8px">
+    <b>The five findings of the day:</b><br>
+    1 · A divider beats thicker walls for wall buckling — L beats M 3.3× in braced
+    compression at equal weight.<br>
+    2 · No section dominates another in everything: bending wants caps, torsion wants uniform
+    thick walls, compression wants subdivision. Checked ~3&thinsp;000 candidates per envelope.<br>
+    3 · Tall free-standing columns fail by whole-column (Euler) buckling — the 70×35 family
+    manages only ~8 kN at 2.7 m; the square S reaches 44 kN. Cell patterns barely help there.<br>
+    4 · Horizontal beams are deflection-limited, and stiffness is envelope-locked —
+    bonded-to-panel horizontals are fine, free spans &gt;1.5 m are not.<br>
+    5 · S's beam weakness is its 62 mm flange (218 MPa): SV's cross fixes it — 2.7× beam
+    strength for +17 % weight, with column capacity almost unchanged.
+  </div>
+</div>
+
+<div id="sect"><div class="t" id="sectTitle">Cross-section</div>
+  <div class="wrap"><svg id="sectSvg" viewBox="0 0 70 70"></svg>
+  <div id="sectNote" style="font-size:11.5px;color:#9fb3c8;line-height:1.55"></div></div>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+"three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+/* metrics from analysis/profile_v_search_2026_08_10.py and
+   analysis/profile_s_70x70_optimization_2026_08_10.py */
+const P = [
+ {k:'M', name:'M — 70×35 box, 4 mm', col:0x3987e5, W:35, H:70, kg:1.474,
+  ix:46.4, imin:14.8, j:34.5, mcap:8.2, eul:8.5, ploc:169, tq:868,
+  note:'Ivan’s M (= R). Uniform 4 mm. Torsion king of the 35 family; wastes material in braced compression (walls buckle at 218 MPa).',
+  rects:[[0,0,35,4],[0,66,35,4],[0,4,4,62],[31,4,4,62]]},
+ {k:'L', name:'L — 70×35, 3.5 + divider', col:0x199e70, W:35, H:70, kg:1.463,
+  ix:41.7, imin:14.0, j:31.3, mcap:7.4, eul:8.0, ploc:476, tq:777,
+  note:'Ivan’s L. The divider makes it the first section that is material-limited in braced compression — 2.8× M’s capacity at less weight.',
+  rects:[[0,0,35,3.5],[0,66.5,35,3.5],[0,3.5,3.5,63],[31.5,3.5,3.5,63],[3.5,33.5,28,3]]},
+ {k:'V', name:'V — 70×35, 5.0/2.9/2.5 (proposed)', col:0xd55181, W:35, H:70, kg:1.465,
+  ix:47.5, imin:13.1, j:30.2, mcap:8.4, eul:7.5, ploc:411, tq:641,
+  note:'Proposed best compromise: best bending of the 35 family at M’s weight, 2.4× M in braced compression. Concedes torsion.',
+  rects:[[0,0,35,5],[0,65,35,5],[0,5,2.9,60],[32.1,5,2.9,60],[2.9,33.75,29.2,2.5]]},
+ {k:'S', name:'S — 70×70 box, 4 mm', col:0xc98500, W:70, H:70, kg:2.006,
+  ix:76.9, imin:76.9, j:115.0, mcap:4.8, eul:44, ploc:230, tq:1847,
+  note:'Ivan’s S. The right shape for tall free-standing columns (5× the weak-axis stiffness of the 35 family). Beam weakness: 62 mm flange buckles at 218 MPa.',
+  rects:[[0,0,70,4],[0,66,70,4],[0,4,4,62],[66,4,4,62]]},
+ {k:'SV', name:'SV — 70×70 田, 3.5 + 2.5 cross (proposed)', col:0x9085e9, W:70, H:70, kg:2.356,
+  ix:74.0, imin:74.0, j:103.0, mcap:13.1, eul:42, ploc:766, tq:1641,
+  note:'Proposed dual-role die: the cross splits flange AND webs. 2.7× S’s beam strength, 3.3× braced compression, column capacity −4 %. Cost: +17 % weight, −11 % torsion.',
+  rects:[[0,0,70,3.5],[0,66.5,70,3.5],[0,3.5,3.5,63],[66.5,3.5,3.5,63],
+         [3.5,33.75,63,2.5],[33.75,3.5,2.5,63]]},
+];
+
+const MODES = {
+  bend:{label:'Bending',
+    note:'Simply supported beam, equal load on all five. Sag scales with 1/Ix. '+
+         'Strength chips show moment capacity — S’s thin-flange penalty and SV’s fix.',
+    fields:p=>[`Ix <b>${p.ix.toFixed(1)} cm⁴</b> · capacity <b>${p.mcap.toFixed(1)} kNm</b>`,
+               `sag vs S: <b>${(76.9/p.ix).toFixed(2)}×</b>`]},
+  col:{label:'Column',
+    note:'Free-standing 2.706 m column, pin ends, equal axial load. Bow scales with the '+
+         'weak-axis 1/I — this is Euler buckling, and it is why the 35 family are not columns.',
+    fields:p=>[`Euler <b>${p.eul.toFixed(1)} kN</b> pin · braced <b>${p.ploc.toFixed(0)} kN</b>`,
+               `weak-axis I <b>${p.imin.toFixed(1)} cm⁴</b>`]},
+  tor:{label:'Torsion',
+    note:'Equal twisting moment. Twist scales with 1/J. Uniform thick walls win — '+
+         'M and S are the torsion kings of their envelopes; dividers carry no torsion flow.',
+    fields:p=>[`J <b>${p.j.toFixed(1)} cm⁴</b> · capacity <b>${p.tq.toFixed(0)} N·m</b>`,
+               `twist vs S: <b>${(115/p.j).toFixed(2)}×</b>`]},
+};
+const BEST = {bend:'SV', col:'S', tor:'S'};
+const BEST35 = {bend:'V', col:'M', tor:'M'};
+
+let mode='bend', playing=true, ex=1.0, sel='SV';
+
+const host=document.getElementById('scene');
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+host.appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x1a1d21);
+scene.fog=new THREE.Fog(0x1a1d21,5000,14000);
+const camera=new THREE.PerspectiveCamera(45,1,10,40000);
+camera.position.set(2100,1500,3100);
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;
+scene.add(new THREE.HemisphereLight(0xdfefff,0x20262e,1.15));
+const key=new THREE.DirectionalLight(0xffffff,1.5);
+key.position.set(2000,3500,2200);scene.add(key);
+const grid=new THREE.GridHelper(9000,18,0x33404d,0x232c35);
+grid.position.y=-1450; scene.add(grid);
+
+const LEN=2000, SEG=70, PITCH=480;
+
+function mergeBoxes(rects,W,H){
+  const pos=[],idx=[];let off=0;
+  for(const [rx,ry,rw,rh] of rects){
+    const g=new THREE.BoxGeometry(rw,rh,LEN,1,1,SEG);
+    g.translate(rx+rw/2-W/2, ry+rh/2-H/2, 0);
+    const p=g.attributes.position.array, ii=g.index.array;
+    pos.push(...p);
+    for(const i of ii) idx.push(i+off);
+    off+=p.length/3;
+  }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  return geo;
+}
+function label(text,color){
+  const c=document.createElement('canvas');c.width=256;c.height=64;
+  const g=c.getContext('2d');
+  g.fillStyle='#0e1216';g.fillRect(0,0,256,64);
+  g.strokeStyle=color;g.lineWidth=4;g.strokeRect(2,2,252,60);
+  g.fillStyle='#e6edf3';g.font='bold 34px system-ui';g.textAlign='center';
+  g.fillText(text,128,44);
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false}));
+  s.scale.set(300,75,1);
+  return s;
+}
+const items=[];
+P.forEach((p,i)=>{
+  const geo=mergeBoxes(p.rects,p.W,p.H);
+  const mesh=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({
+    color:p.col,roughness:.55,metalness:.05}));
+  const grp=new THREE.Group();
+  grp.add(mesh);
+  const lb=label(p.k,'#'+p.col.toString(16).padStart(6,'0'));
+  lb.position.set(0,320,0); grp.add(lb);
+  grp.position.x=(i-(P.length-1)/2)*PITCH;
+  scene.add(grp);
+  items.push({p,mesh,base:geo.attributes.position.array.slice()});
+});
+
+function sag(u){const x=u+0.5;return (16/5)*(x**4-2*x**3+x);}
+function deform(t){
+  for(const it of items){
+    const arr=it.mesh.geometry.attributes.position.array, b=it.base, p=it.p;
+    if(mode==='bend'){
+      const d=140*(76.9/p.ix)*ex*t;
+      for(let i=0;i<arr.length;i+=3){
+        arr[i]=b[i]; arr[i+1]=b[i+1]-sag(b[i+2]/LEN)*d; arr[i+2]=b[i+2];
+      }
+    }else if(mode==='col'){
+      const d=55*(74.0/p.imin)*ex*t;
+      for(let i=0;i<arr.length;i+=3){
+        arr[i]=b[i]+Math.sin(Math.PI*(b[i+2]/LEN+0.5))*d;
+        arr[i+1]=b[i+1]; arr[i+2]=b[i+2];
+      }
+    }else{
+      const th=0.55*(103.0/p.j)*ex*t;
+      for(let i=0;i<arr.length;i+=3){
+        const a=th*(b[i+2]/LEN+0.5), c=Math.cos(a), s=Math.sin(a);
+        arr[i]=b[i]*c-b[i+1]*s; arr[i+1]=b[i]*s+b[i+1]*c; arr[i+2]=b[i+2];
+      }
+    }
+    it.mesh.geometry.attributes.position.needsUpdate=true;
+    it.mesh.geometry.computeVertexNormals();
+  }
+}
+let t0=0;
+function tick(ms){
+  requestAnimationFrame(tick);
+  if(!t0)t0=ms;
+  const load=playing?(1-Math.cos((ms-t0)/1000*1.3))/2:1;
+  deform(load);
+  controls.update();
+  renderer.render(scene,camera);
+}
+function resize(){
+  const w=host.clientWidth||innerWidth,h=host.clientHeight||innerHeight;
+  camera.aspect=w/h;camera.updateProjectionMatrix();
+  renderer.setSize(w,h,false);
+}
+addEventListener('resize',resize);
+
+function cards(){
+  const m=MODES[mode];
+  document.getElementById('resTitle').textContent='Results — '+m.label;
+  document.getElementById('modeNote').textContent=m.note;
+  document.getElementById('cards').innerHTML=P.map(p=>{
+    const col='#'+p.col.toString(16).padStart(6,'0');
+    const chips=(BEST[mode]===p.k?'<span class="chip">best overall</span>':'')+
+      (BEST35[mode]===p.k?'<span class="chip warn">best 70×35</span>':'');
+    return `<div class="card ${p.k===sel?'sel':''}" data-k="${p.k}">
+      <div class="nm" style="color:${col}">${p.name}${chips}</div>
+      <div class="kv"><b>${p.kg.toFixed(2)} kg/m</b> · ${m.fields(p).join('<br>')}</div>
+    </div>`;
+  }).join('');
+  for(const c of document.querySelectorAll('.card'))
+    c.onclick=()=>{sel=c.dataset.k;cards();section();};
+}
+function section(){
+  const p=P.find(x=>x.k===sel);
+  const svg=document.getElementById('sectSvg');
+  svg.setAttribute('viewBox',`-3 -3 ${p.W+6} ${p.H+6}`);
+  svg.innerHTML=p.rects.map(([x,y,w,h])=>
+    `<rect x="${x}" y="${p.H-y-h}" width="${w}" height="${h}" fill="#f2c811"
+      stroke="#1a1d21" stroke-width="0.5"/>`).join('');
+  document.getElementById('sectTitle').textContent=
+    `Cross-section ${p.k} — ${p.W}×${p.H} mm, true proportions`;
+  document.getElementById('sectNote').innerHTML=p.note;
+}
+document.getElementById('mBend').onclick=()=>setMode('bend','mBend');
+document.getElementById('mCol').onclick=()=>setMode('col','mCol');
+document.getElementById('mTor').onclick=()=>setMode('tor','mTor');
+function setMode(m,id){
+  mode=m;
+  for(const b of ['mBend','mCol','mTor'])
+    document.getElementById(b).classList.toggle('on',b===id);
+  cards();
+}
+const bPlay=document.getElementById('bPlay');
+bPlay.onclick=()=>{playing=!playing;bPlay.textContent=playing?'⏸ Pause':'▶ Play';
+                   bPlay.classList.toggle('on',playing);};
+const exEl=document.getElementById('ex');
+exEl.oninput=()=>{ex=exEl.value/100;
+  document.getElementById('exVal').textContent='×'+ex.toFixed(1);};
+
+resize();cards();section();requestAnimationFrame(tick);
+</script>
+</body>
+</html>
