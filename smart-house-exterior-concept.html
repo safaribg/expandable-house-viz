@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>SMART HOUSE exterior concept - 600 mm facade panels</title>
+<style>
+  :root{color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;background:#15181c;color:#e9eef4;font-family:system-ui,-apple-system,sans-serif;overflow:hidden}
+  #scene{position:fixed;inset:0}
+  .pane{position:fixed;z-index:5;background:rgba(12,15,18,.82);backdrop-filter:blur(10px);
+        border:1px solid rgba(255,255,255,.1);border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+  #ui{top:12px;left:12px;width:360px;padding:13px 14px}
+  #ui h1{font-size:15px;margin:0 0 4px;color:#fff}
+  #ui .sub{font-size:12px;line-height:1.45;color:#9fb1c4;margin:0 0 12px}
+  button{border:0;border-radius:6px;background:#2d3540;color:#e9eef4;padding:7px 10px;margin:0 5px 7px 0;
+         font:13px system-ui,sans-serif;cursor:pointer}
+  button.on{background:#d09b46;color:#101418}
+  input[type=range]{width:100%;accent-color:#d09b46}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
+  .lbl{font-size:11px;color:#9fb1c4}
+  #stageText{font-size:12px;line-height:1.45;color:#c9d5e1;margin-top:8px;border-top:1px solid rgba(255,255,255,.1);padding-top:9px}
+  #spec{right:12px;top:12px;width:350px;max-height:calc(100vh - 24px);overflow:auto;padding:14px}
+  #spec h2{font-size:14px;margin:0 0 8px;color:#fff}
+  .metric{display:grid;grid-template-columns:1fr auto;gap:10px;font-size:12px;border-top:1px solid rgba(255,255,255,.08);padding:7px 0}
+  .metric span:first-child{color:#9fb1c4}
+  .metric b{font-weight:650;color:#fff}
+  #legend{left:12px;bottom:12px;width:360px;padding:11px 13px;font-size:11.5px;line-height:1.65;color:#c8d4df}
+  .sw{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:7px;vertical-align:-1px;border:1px solid rgba(255,255,255,.25)}
+  #badge{position:fixed;right:16px;bottom:14px;z-index:4;font-size:11px;color:#7f91a5}
+  @media (max-width:900px){
+    body{overflow:auto}
+    #scene{position:relative;height:58vh}
+    .pane{position:static;margin:10px 10px 0;width:auto!important;max-height:none;backdrop-filter:none}
+    #badge{position:static;margin:8px 12px 14px}
+  }
+</style>
+</head>
+<body>
+<div id="scene"></div>
+
+<div id="ui" class="pane">
+  <h1>SMART HOUSE exterior concept</h1>
+  <p class="sub">Expanded house with 600 x 600 mm facade panels, raised parapet band, hidden roof solar zone, windows, doors, frames and install stages.</p>
+  <div>
+    <button data-stage="0" class="on">1 Frame</button>
+    <button data-stage="1">2 Panels</button>
+    <button data-stage="2">3 Glass</button>
+    <button data-stage="3">4 Facade</button>
+    <button data-stage="4">5 Solar</button>
+  </div>
+  <button id="play">Play</button>
+  <button id="orbit" class="on">Orbit</button>
+  <div class="row"><span class="lbl">Installation progress</span><span id="pct" class="lbl">100%</span></div>
+  <input id="progress" type="range" min="0" max="400" value="400">
+  <div id="stageText"></div>
+</div>
+
+<div id="spec" class="pane">
+  <h2>Specified dimensions</h2>
+  <div class="metric"><span>Expanded footprint</span><b>7.46 x 6.058 m</b></div>
+  <div class="metric"><span>Folded transport width</span><b>2.506 m</b></div>
+  <div class="metric"><span>Roof structural datum</span><b>2.706 m</b></div>
+  <div class="metric"><span>Facade/parapet top</span><b>3.000 m</b></div>
+  <div class="metric"><span>Hidden solar clearance</span><b>294 mm parapet above roof</b></div>
+  <div class="metric"><span>Exterior cladding module</span><b>600 x 600 mm</b></div>
+  <div class="metric"><span>Front sliding window</span><b>2.40 x 2.38 m</b></div>
+  <div class="metric"><span>Main glass door</span><b>0.95 x 2.38 m</b></div>
+  <div class="metric"><span>Kitchen/dining window</span><b>1.80 x 2.38 m</b></div>
+  <div class="metric"><span>Side wall service window</span><b>1.20 x 1.20 m</b></div>
+  <div class="metric"><span>Roof solar field</span><b>6 panels, 1.72 x 1.13 m</b></div>
+  <div class="metric"><span>Base construction</span><b>70 mm panels + 3 mm skins</b></div>
+</div>
+
+<div id="legend" class="pane">
+  <span class="sw" style="background:#8fa8b8"></span>70x35/70x70 FRP structural frame and joists<br>
+  <span class="sw" style="background:#6f7f8d"></span>FRP sandwich wall, floor and roof panels<br>
+  <span class="sw" style="background:#d7d0c6"></span>600 x 600 stone-look exterior panels<br>
+  <span class="sw" style="background:#111820"></span>black aluminum door/window frames<br>
+  <span class="sw" style="background:#1c3346"></span>VIG glass modules<br>
+  <span class="sw" style="background:#1b2230"></span>solar panels hidden behind raised parapet
+</div>
+<div id="badge">SMART HOUSE exterior concept V1.0</div>
+
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+"three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+const W=7.46,L=6.058,H=2.706,PAR=3.0,T=0.076;
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x15181c);
+scene.fog=new THREE.Fog(0x15181c,12,26);
+const host=document.getElementById('scene');
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+host.appendChild(renderer.domElement);
+const camera=new THREE.PerspectiveCamera(40,1,.05,80);
+camera.position.set(5.8,4.6,-11.4);
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.target.set(0,1.25,0);
+controls.enableDamping=true;
+controls.maxPolarAngle=Math.PI*.48;
+scene.add(new THREE.HemisphereLight(0xdfe8f2,0x24303a,.9));
+const sun=new THREE.DirectionalLight(0xfff0dc,2.2);sun.position.set(-3,6,5);scene.add(sun);
+const rim=new THREE.DirectionalLight(0x98b7ff,.65);rim.position.set(5,3,-7);scene.add(rim);
+
+const mats={
+  frame:new THREE.MeshStandardMaterial({color:0x8fa8b8,roughness:.46,metalness:.04}),
+  heavy:new THREE.MeshStandardMaterial({color:0xb46d3d,roughness:.46}),
+  panel:new THREE.MeshStandardMaterial({color:0x697b88,roughness:.64}),
+  stone:new THREE.MeshStandardMaterial({color:0xd7d0c6,roughness:.78}),
+  stone2:new THREE.MeshStandardMaterial({color:0xcac1b6,roughness:.84}),
+  black:new THREE.MeshStandardMaterial({color:0x111820,roughness:.32,metalness:.25}),
+  glass:new THREE.MeshPhysicalMaterial({color:0x2c6282,transmission:.28,transparent:true,opacity:.46,roughness:.04,metalness:0}),
+  roof:new THREE.MeshStandardMaterial({color:0x222c34,roughness:.6}),
+  solar:new THREE.MeshStandardMaterial({color:0x172236,roughness:.24,metalness:.15}),
+  warm:new THREE.MeshBasicMaterial({color:0xffc679}),
+  ground:new THREE.MeshStandardMaterial({color:0x202820,roughness:1}),
+  path:new THREE.MeshStandardMaterial({color:0x80786e,roughness:.9})
+};
+const groups=[new THREE.Group(),new THREE.Group(),new THREE.Group(),new THREE.Group(),new THREE.Group()];
+groups.forEach(g=>scene.add(g));
+const labels=[];
+function box(g,xyz,whd,mat=mats.panel){
+  const o=new THREE.Mesh(new THREE.BoxGeometry(...whd),mat);
+  o.position.set(...xyz);g.add(o);return o;
+}
+function cyl(g,xyz,r,h,mat=mats.frame,rot='x'){
+  const c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,18),mat);
+  if(rot==='x')c.rotation.z=Math.PI/2;
+  if(rot==='z')c.rotation.x=Math.PI/2;
+  c.position.set(...xyz);g.add(c);return c;
+}
+function label(text,pos,scale=1){
+  const c=document.createElement('canvas'),ctx=c.getContext('2d');
+  c.width=512;c.height=112;
+  ctx.fillStyle='rgba(11,14,18,.84)';ctx.fillRect(0,0,c.width,c.height);
+  ctx.strokeStyle='rgba(255,255,255,.22)';ctx.strokeRect(1,1,c.width-2,c.height-2);
+  ctx.fillStyle='#edf3f8';ctx.font='28px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+  text.split('\n').forEach((line,i,a)=>ctx.fillText(line,256,56+(i-(a.length-1)/2)*30));
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));
+  s.position.set(...pos);s.scale.set(1.55*scale,.34*scale,1);scene.add(s);labels.push(s);return s;
+}
+function dimLine(a,b,text,off=[0,0,0]){
+  const va=new THREE.Vector3(...a),vb=new THREE.Vector3(...b);
+  const mid=va.clone().add(vb).multiplyScalar(.5).add(new THREE.Vector3(...off));
+  const len=va.distanceTo(vb);
+  const geo=new THREE.BufferGeometry().setFromPoints([va.add(new THREE.Vector3(...off)),vb.add(new THREE.Vector3(...off))]);
+  const line=new THREE.Line(geo,new THREE.LineBasicMaterial({color:0xe7bd6b,transparent:true,opacity:.9}));
+  scene.add(line);labels.push(line);label(text,mid,.8+Math.min(len,7)*.04);
+}
+
+function frame(){
+  const g=groups[0], x0=-L/2,x1=L/2,z0=-W/2,z1=W/2;
+  for(const x of [x0,x1])for(const z of [z0,z1])box(g,[x,H/2,z],[.07,H,.07],mats.frame);
+  for(const z of [z0,z1]){box(g,[0,.035,z],[L,.07,.07],mats.heavy);box(g,[0,H-.035,z],[L,.07,.07],mats.frame);}
+  for(const x of [x0,x1]){box(g,[x,.035,0],[.07,.07,W],mats.heavy);box(g,[x,H-.035,0],[.07,.07,W],mats.frame);}
+  for(let x=x0+.61;x<x1-.1;x+=.61){box(g,[x,.08,0],[.035,.07,W-.16],mats.frame);box(g,[x,H-.08,0],[.035,.07,W-.16],mats.frame);}
+  for(let z=z0+.61;z<z1-.1;z+=.61){box(g,[0,.11,z],[L-.16,.045,.035],mats.frame);box(g,[0,H-.12,z],[L-.16,.045,.035],mats.frame);}
+  box(g,[0,H+.015,0],[L+.02,.03,W+.02],mats.roof);
+  dimLine([-L/2,0,-W/2],[L/2,0,-W/2],`length ${L.toFixed(3)} m`,[0,.08,-.42]);
+  dimLine([L/2,0,-W/2],[L/2,0,W/2],`expanded width ${W.toFixed(2)} m`,[.42,.08,0]);
+  dimLine([-L/2,0,W/2],[-L/2,H,W/2],`roof datum ${H.toFixed(3)} m`,[-.42,0,0]);
+}
+function shellPanels(){
+  const g=groups[1];
+  box(g,[0,T/2,0],[L,T,W],mats.panel);
+  box(g,[0,H-T/2,0],[L,T,W],mats.panel);
+  box(g,[0,H/2,-W/2+T/2],[L,H,T],mats.panel);
+  box(g,[0,H/2,W/2-T/2],[L,H,T],mats.panel);
+  box(g,[-L/2+T/2,H/2,0],[T,H,W],mats.panel);
+  box(g,[L/2-T/2,H/2,0],[T,H,W],mats.panel);
+}
+function glassFront(){
+  const g=groups[2], z=-W/2-.012, y=1.23;
+  const openings=[
+    {x:-1.66,w:2.40,h:2.38,name:'2.40 x 2.38 m sliding VIG'},
+    {x:.12,w:.95,h:2.38,name:'0.95 x 2.38 m door'},
+    {x:1.88,w:1.80,h:2.38,name:'1.80 x 2.38 m VIG'}
+  ];
+  for(const o of openings){
+    box(g,[o.x,y,z],[o.w,o.h,.035],mats.glass);
+    box(g,[o.x-o.w/2,y,z],[.055,o.h+.08,.07],mats.black);
+    box(g,[o.x+o.w/2,y,z],[.055,o.h+.08,.07],mats.black);
+    box(g,[o.x,y-o.h/2,z],[o.w+.1,.055,.07],mats.black);
+    box(g,[o.x,y+o.h/2,z],[o.w+.1,.055,.07],mats.black);
+    if(o.w>1.4)box(g,[o.x,y,z-.005],[.035,o.h,.04],mats.black);
+  }
+  box(g,[0,H/2,W/2+.012],[1.20,1.20,.035],mats.glass);
+  box(g,[0,H/2,W/2+.04],[1.32,.07,.08],mats.black);
+  box(g,[0,H/2,W/2+.04],[.07,1.32,.08],mats.black);
+  label('front glazing reaches roof underside\n2.38 m high modules',[0,2.82,-W/2-.45],.88);
+}
+function cladding(){
+  const g=groups[3], tile=.6, gap=.012, th=.04;
+  function addTile(x,y,z,w,h,rot=false,i=0){
+    const mat=i%3===0?mats.stone2:mats.stone;
+    const o=box(g,[x,y,z],rot?[th,h,w]:[w,h,th],mat);
+    o.userData.baseY=y;return o;
+  }
+  for(const side of [-1,1]){
+    const z=side*(W/2+th/2);
+    for(let x=-L/2+tile/2;x<L/2;x+=tile){
+      for(let y=tile/2;y<PAR;y+=tile){
+        const inOpen=side<0 && y<2.45 && ((x>-2.9&&x<-.45)||(x>-.38&&x<.62)||(x>.95&&x<2.85));
+        if(!inOpen)addTile(x,y,z,tile-gap,tile-gap,false,Math.round((x+10)*7+y*5));
+      }
+    }
+  }
+  for(const side of [-1,1]){
+    const x=side*(L/2+th/2);
+    for(let z=-W/2+tile/2;z<W/2;z+=tile)for(let y=tile/2;y<PAR;y+=tile)
+      addTile(x,y,z,tile-gap,tile-gap,true,Math.round((z+10)*7+y*5));
+  }
+  box(g,[0,PAR-.03,0],[L+.14,.06,W+.14],mats.black);
+  label('600 x 600 mm exterior panels\nparapet top 3.000 m',[2.15,3.28,-W/2-.55],.9);
+  dimLine([-L/2,PAR,-W/2],[L/2,PAR,-W/2],'600 mm panel grid / raised parapet',[0,.18,-.2]);
+}
+function solarAndSite(){
+  const g=groups[4];
+  for(let i=0;i<6;i++){
+    const row=i<3?-.65:.65, col=(i%3-1)*1.38;
+    box(g,[col,H+.085,row],[1.13,.05,1.72],mats.solar);
+    box(g,[col,H+.116,row],[1.17,.018,1.76],mats.black);
+  }
+  const strip1=box(g,[0,2.94,-W/2-.035],[L+.05,.035,.035],mats.warm);
+  const strip2=box(g,[0,2.94,W/2+.035],[L+.05,.035,.035],mats.warm);
+  strip1.material=strip2.material=mats.warm;
+  for(const x of [-2.4,0,2.4])box(g,[x,.045,-W/2-.55],[.16,.09,.16],mats.warm);
+  label('solar panels sit below the 3.000 m parapet\nnot visible from normal side view',[0,3.44,.35],.92);
+}
+function site(){
+  const g=new THREE.Group();scene.add(g);
+  box(g,[0,-.035,0],[13,.05,12],mats.ground);
+  for(let i=0;i<6;i++)box(g,[-2.8+i*.72,.006,-5.3],[.58,.025,.7],mats.path);
+  for(const p of [[-4.6,.25,-4.5],[-5.4,.32,-2.7],[4.8,.28,-4.1],[5.2,.24,3.2],[-5.2,.2,3.3]]){
+    const bush=new THREE.Mesh(new THREE.SphereGeometry(p[1],16,10),new THREE.MeshStandardMaterial({color:0x314a2d,roughness:1}));
+    bush.position.set(p[0],p[1],p[2]);g.add(bush);
+  }
+}
+frame(); shellPanels(); glassFront(); cladding(); solarAndSite(); site();
+dimLine([L/2,0,W/2],[L/2,PAR,W/2],'facade top 3.000 m',[.8,0,0]);
+
+const stageTexts=[
+  'Stage 1: FRP skeleton. 70x70 corner posts, 70x35 field members, roof/floor joists and perimeter rails are visible before enclosure.',
+  'Stage 2: structural panels. 70 mm wall, floor and roof panels are installed on the frame; the roof datum stays at 2.706 m.',
+  'Stage 3: windows and doors. Front modules are specified as 2.40 m sliding VIG, 0.95 m door and 1.80 m VIG, all 2.38 m high.',
+  'Stage 4: 600 x 600 mm exterior panels. The top tile row forms a parapet rising to 3.000 m, slightly above the roof.',
+  'Stage 5: hidden solar and finished outlook. Six 1.72 x 1.13 m solar panels sit behind the parapet, with side view blocked.'
+];
+let targetStage=4,auto=false,orbit=true,t=0;
+const buttons=[...document.querySelectorAll('[data-stage]')];
+const progress=document.getElementById('progress'), pct=document.getElementById('pct'), stageText=document.getElementById('stageText');
+function setStage(s){
+  targetStage=s;progress.value=s*100;buttons.forEach(b=>b.classList.toggle('on',+b.dataset.stage===s));stageText.textContent=stageTexts[s];pct.textContent=Math.round(s/4*100)+'%';
+}
+buttons.forEach(b=>b.onclick=()=>setStage(+b.dataset.stage));
+document.getElementById('play').onclick=e=>{auto=!auto;e.currentTarget.textContent=auto?'Pause':'Play';e.currentTarget.classList.toggle('on',auto)};
+document.getElementById('orbit').onclick=e=>{orbit=!orbit;e.currentTarget.classList.toggle('on',orbit)};
+progress.oninput=e=>{targetStage=Math.round(+e.target.value/100);setStage(targetStage)};
+setStage(4);
+function updateVisibility(){
+  groups.forEach((g,i)=>{
+    const v=targetStage>=i?1:0;
+    g.visible=v>.01;
+    g.traverse(o=>{if(o.isMesh){o.material.transparent=o.material.transparent||v<1;o.material.opacity=o.material.opacity??1;}});
+  });
+}
+function resize(){
+  const r=host.getBoundingClientRect();
+  renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();
+}
+addEventListener('resize',resize);resize();
+function animate(){
+  requestAnimationFrame(animate);t+=.006;
+  if(auto){const s=Math.floor((performance.now()/2200)%5);if(s!==targetStage)setStage(s);}
+  if(orbit){const r=12.4;camera.position.x=Math.sin(t)*r;camera.position.y=4.5;camera.position.z=-Math.cos(t)*r;camera.lookAt(0,1.25,0);}
+  updateVisibility();controls.update();renderer.render(scene,camera);
+}
+animate();
+</script>
+</body>
+</html>
