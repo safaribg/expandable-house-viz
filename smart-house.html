@@ -70,7 +70,9 @@ const Q=new URLSearchParams(location.search);
 
 /* ---- dimensions (m) ---- */
 const L=6.058, H=2.706, D=2.55;        // length, height, wing depth from Ivan's PDF
-const CORE=2.36, Z1=D, Z2=D+CORE;      // core long edges (z)
+const CORE=2.36, Z1=D, Z2=D+CORE;      // roof hinge lines, 236 apart (ceiling drawing)
+const MID=Z1+CORE/2;
+const FCOREW=2.20, ZF1=MID-FCOREW/2, ZF2=MID+FCOREW/2; // floor hinge lines, 220 apart
 const T=0.07, FLD=0.07;                // 7 cm construction (walls 7.6 incl. 3 mm skins)
 const SKIN=0.003, P_W=0.035, P_D=0.07; // 3 mm skins + single 70x35x4 profiles
 const HINGE_LEN=0.3048, HINGE_W=0.127, HINGE_PIN_D=0.018, HINGE_THICK=0.0047;
@@ -78,7 +80,7 @@ const FLOOR_TOP=FLD, ROOF_TOP=H;
 const HW=2.515;                        // wall height 251.5 cm per 2026-08-10 drawings
 const ROOF_D=2.55;                     // wing roof panel 255 cm (front-folded drawing)
 const ROOF_UNDERSIDE=H-T;              // flat roof: wing roofs coplanar with the core roof
-const PARK=0.15;                       // folded roof hangs outboard of the wall+floor stack
+const PARK=0.07;                       // folded roof hangs just outboard of the floor stack
 const WALL_Y0=FLD, WALL_Y1=FLD+HW;     // wall top 258.5; gap to roof closed by step-4 beams
 
 const scene=new THREE.Scene(); scene.background=new THREE.Color(0x1a1d21);
@@ -234,12 +236,12 @@ function addEndOpenings(g,d,h){
 const core=new THREE.Group(); scene.add(core);
 {const Wc=Z2-Z1;
  // floor: structure sits below one flat top datum shared by core and wings.
- for(const z of [Z1+0.04,Z2-0.04]) box(core,[L/2,FLOOR_TOP-T/2,z],[L,T,0.08],MAT.b);
- for(const x of [0.04,L-0.04]) box(core,[x,FLOOR_TOP-T/2,(Z1+Z2)/2],[0.08,T,Wc],MAT.b);
- for(let x=0.61;x<L-0.1;x+=0.61) box(core,[x,FLOOR_TOP-T/2,(Z1+Z2)/2],[P_W,P_D,Wc-0.16],MAT.f);
- for(const z of [Z1+Wc/3,Z1+2*Wc/3]) box(core,[L/2,FLOOR_TOP-T/2,z],[L-0.16,P_D,P_W],MAT.f);
- box(core,[L/2,FLOOR_TOP+SKIN/2,(Z1+Z2)/2],[L,SKIN,Wc],MAT.s);
- box(core,[L/2,-SKIN/2,(Z1+Z2)/2],[L,SKIN,Wc],MAT.s);
+ for(const z of [ZF1+0.04,ZF2-0.04]) box(core,[L/2,FLOOR_TOP-T/2,z],[L,T,0.08],MAT.b);
+ for(const x of [0.04,L-0.04]) box(core,[x,FLOOR_TOP-T/2,MID],[0.08,T,FCOREW],MAT.b);
+ for(let x=0.61;x<L-0.1;x+=0.61) box(core,[x,FLOOR_TOP-T/2,MID],[P_W,P_D,FCOREW-0.16],MAT.f);
+ for(const z of [ZF1+FCOREW/3,ZF1+2*FCOREW/3]) box(core,[L/2,FLOOR_TOP-T/2,z],[L-0.16,P_D,P_W],MAT.f);
+ box(core,[L/2,FLOOR_TOP+SKIN/2,MID],[L,SKIN,FCOREW],MAT.s);
+ box(core,[L/2,-SKIN/2,MID],[L,SKIN,FCOREW],MAT.s);
  // roof slab
  for(const z of [Z1+P_W/2,Z2-P_W/2]) box(core,[L/2,H-T/2,z],[L,P_D,P_W],MAT.e);
  for(const x of [P_W/2,L-P_W/2]) box(core,[x,H-T/2,(Z1+Z2)/2],[P_W,P_D,Wc-2*P_W],MAT.e);
@@ -252,17 +254,12 @@ const core=new THREE.Group(); scene.add(core);
    const ep=endPanel(Z2-Z1,H-FLD-T);
    // small window in core end (bathroom/kitchen ventilation)
    w.add(ep); core.add(w);}
- // corner posts + hinge rails (yellow) on long edges
- for(const z of [Z1+0.08+P_D/2,Z2-0.08-P_D/2]) for(const x of [P_W/2,L-P_W/2])
-   box(core,[x,(FLD+H-T)/2,z],[P_W,H-T-FLD,P_D],MAT.e);
  hingeRod(core,[L/2,ROOF_TOP-0.03,Z1],L);                         // roof hinge lines on the
  hingeRod(core,[L/2,ROOF_TOP-0.03,Z2],L);                         //  flat 270.6 roof datum
- hingeRod(core,[L/2,FLOOR_TOP+0.03,Z1],L);                        // floor hinge lines on same
- hingeRod(core,[L/2,FLOOR_TOP+0.03,Z2],L);                        //  flat floor datum
- for(const z of [Z1,Z2]){
-   box(core,[L/2,ROOF_TOP-0.07,z],[L,0.035,0.045],MAT.p);
-   box(core,[L/2,FLOOR_TOP+0.07,z],[L,0.035,0.045],MAT.p);
- }
+ hingeRod(core,[L/2,FLOOR_TOP+0.03,ZF1],L);                       // floor hinge lines on the
+ hingeRod(core,[L/2,FLOOR_TOP+0.03,ZF2],L);                       //  220 cm main-floor edges
+ for(const z of [Z1,Z2]) box(core,[L/2,ROOF_TOP-0.07,z],[L,0.035,0.045],MAT.p);
+ for(const z of [ZF1,ZF2]) box(core,[L/2,FLOOR_TOP+0.07,z],[L,0.035,0.045],MAT.p);
 }
 
 /* ============ WINGS (animated) ============ */
@@ -272,20 +269,19 @@ const OPEN_L=[];
 // Build each wing in a LOCAL +z frame (outer edge at Z2, extends +z). The −z (left)
 // wing is the same geometry mirrored by root.scale.z = −1 about the core mid-plane,
 // so all fold formulas below are written once, in the +z sense.
-const MID=(Z1+Z2)/2;
 function makeWing(openings,mirror){
  const root=new THREE.Group();
  if(mirror){root.scale.z=-1; root.position.z=Z1+Z2;}  // mirror +z wing → −z wing
  scene.add(root);
  const wing={root};
  // FLOOR: pivot = shared finished floor datum; slab structure hangs below it.
- const fp=new THREE.Group(); fp.position.set(0,FLOOR_TOP,Z2); root.add(fp);
+ const fp=new THREE.Group(); fp.position.set(0,FLOOR_TOP,ZF2); root.add(fp);
  fp.add(slabPanel(D,0.61,true,true,true,2));          // 61 cm joists per the expanded-base drawing
  // OUTER WALL: child of floor, hinged at floor outer edge (0,0,D). Deployed → stands +y.
  // Stored (t=0) it lies flat ONTO the floor pointing toward the core (−z), so when the
  // floor stands up the 2.55 m wall fits under the 2.70 m height instead of protruding.
  const ow=new THREE.Group(); ow.position.set(0,0,D); fp.add(ow);
- const wPan=wallPanel(HW,openings,L); wPan.position.set(0,0,-0.076); ow.add(wPan);
+ const wPan=wallPanel(HW,openings,L); wPan.position.set(0,0,0); ow.add(wPan);
  hingeRod(ow,[L/2,0.0,0.0],L);
  // ROOF: pivot = shared finished roof datum; wing roof extends over the wall thickness.
  const rp=new THREE.Group(); rp.position.set(0,ROOF_TOP,Z2); root.add(rp);
@@ -297,22 +293,22 @@ const installedFacades=[];
 const installGroups={horizontal:[],doors:[],windows:[]};
 function installedFrontBackFacade(x,dir){
  const g=new THREE.Group();
- g.position.set(x,FLD,Z1-D);
+ g.position.set(x,FLD,ZF1-D);
  scene.add(g); installedFacades.push(g);
  const x0=dir>0?0:-P_D;
- const fullW=D+CORE+D;
+ const fullW=D+FCOREW+D;
  // Always-visible front/back frame outline and core division lines after expansion.
  box(g,[x0+P_D/2,HW-P_W/2,fullW/2],[P_D,P_W,fullW],MAT.e);
  box(g,[x0+P_D/2,P_W/2,fullW/2],[P_D,P_W,fullW],MAT.e);
  for(const z of [P_W/2,D-P_W/2,D+CORE+P_W/2,fullW-P_W/2])
    box(g,[x0+P_D/2,HW/2,z],[P_D,HW,P_W],MAT.e);
  for(const y of [HW/3,2*HW/3])
-   box(g,[x0+P_D/2,y,D+CORE/2],[P_D,P_W,CORE-2*P_W],MAT.f);
+   box(g,[x0+P_D/2,y,D+FCOREW/2],[P_D,P_W,FCOREW-2*P_W],MAT.f);
  // Step 5: vertical beam lines plus doors, installed after the main frame is open.
  const dg=new THREE.Group(); g.add(dg); installGroups.doors.push(dg);
  const layoutWing=(side)=>{
    const outward=side<0?-1:1;
-   const coreEdge=side<0?D:D+CORE;
+   const coreEdge=side<0?D:D+FCOREW;
    const doorW=0.825, winW=0.825, beamW=0.035;
    const door0=side<0?coreEdge-doorW:coreEdge;
    const w10=side<0?door0-beamW-winW:door0+doorW+beamW;
@@ -345,7 +341,7 @@ function installedLongClosingBeams(){
  const g=new THREE.Group(); scene.add(g); installGroups.horizontal.push(g);
  // Step 4 beams run the whole house length, exactly along the roof-wing/side-wall joint.
  const beamY=(WALL_Y1+ROOF_UNDERSIDE)/2, beamH=ROOF_UNDERSIDE-WALL_Y1;
- for(const z of [Z1-D+0.038,Z2+D-0.038]){
+ for(const z of [ZF1-D-0.038,ZF2+D+0.038]){
    box(g,[L/2,beamY,z],[L,beamH,T],MAT.r);
    for(const x of [P_D/2,L-P_D/2])
      box(g,[x,beamY,z],[P_D*1.25,beamH*1.6,T*1.35],MAT.p);
