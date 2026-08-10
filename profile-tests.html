@@ -249,7 +249,7 @@ function resize(){
   const host=document.getElementById('scene');
   const w=host.clientWidth||innerWidth,h=host.clientHeight||innerHeight;
   camera.aspect=w/h;camera.updateProjectionMatrix();
-  renderer.setSize(w,h,false);
+  renderer.setSize(w,h);
 }
 addEventListener('resize',resize);
 resize();requestAnimationFrame(tick);

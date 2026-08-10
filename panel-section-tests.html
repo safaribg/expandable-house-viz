@@ -192,7 +192,7 @@ function tick(ms){
 function resize(){
   const w = host.clientWidth || innerWidth, h = host.clientHeight || innerHeight;
   camera.aspect = w / h; camera.updateProjectionMatrix();
-  renderer.setSize(w, h, false);
+  renderer.setSize(w, h);
 }
 addEventListener('resize', resize);
 
