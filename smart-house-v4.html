@@ -114,14 +114,18 @@
   <div class="metric"><span>Front vs. rear</span><b>identical</b></div>
   <div class="metric"><span>Glazing head / sill</span><b>+2 626 / +76 mm</b></div>
   <div class="metric"><span>Head above 2 courses</span><b id="mHeadOver">—</b></div>
-  <div class="metric"><span>Outer VIG lite</span><b>837.9 &times; 2 550 mm</b></div>
-  <div class="metric"><span>Inner VIG lite</span><b>819.1 &times; 2 550 mm</b></div>
+  <div class="metric"><span>Windows per wing</span><b>2, either side of the profile</b></div>
+  <div class="metric"><span>Outer window glass</span><b>837.9 &times; 2 314 mm</b></div>
+  <div class="metric"><span>Inner window glass</span><b>819.1 &times; 2 314 mm</b></div>
   <div class="metric"><span>Door glass</span><b>798 &times; 2 314 mm</b></div>
   <div class="metric"><span>Door assembly</span><b>994 &times; 2 550 mm</b></div>
   <div class="metric"><span>Wing setting-out</span><b>45·837.9·35·819.1·98·798·98</b></div>
   <div class="metric"><span>Wing total</span><b>2 731 mm exactly</b></div>
-  <div class="metric"><span>Mullion / corner jamb</span><b>35 / 45 mm</b></div>
-  <div class="metric"><span>VIG glass</span><b>12.4 mm frameless</b></div>
+  <div class="metric"><span>Vertical profile</span><b>35 mm, one per wing</b></div>
+  <div class="metric"><span>Side frame</span><b>45 mm at the corner</b></div>
+  <div class="metric"><span>Upper / bottom frame</span><b>118 / 118 mm</b></div>
+  <div class="metric"><span>Window framing</span><b>none &mdash; glass into the frames</b></div>
+  <div class="metric"><span>VIG glass</span><b>12.4 mm</b></div>
   <div class="metric"><span>Frame face</span><b>50 mm bronze anodised</b></div>
   <div class="metric"><span>Glazing set back</span><b>30 mm behind the panels</b></div>
   <div class="metric"><span>Long side walls</span><b>no openings</b></div>
@@ -174,8 +178,9 @@
   <span class="sw" style="background:#8a8578"></span>PU adhesive bed — no sub-frame anywhere<br>
   <span class="sw" style="background:#efece4"></span>60 &times; 120 cm &times; 30 mm PU white-stone panel, glued<br>
   <span class="sw" style="background:#b98a4e"></span>30 mm larch panel, glued, flush with the stone<br>
-  <span class="sw" style="background:#7d5f38"></span>Bronze anodised door / window frames<br>
-  <span class="sw" style="background:#9fc3d6"></span>12.4 mm frameless VIG glazing<br>
+  <span class="sw" style="background:#7d5f38"></span>Bronze anodised door frames — 98 stiles, 118 head + rail<br>
+  <span class="sw" style="background:#9fc3d6"></span>12.4 mm VIG glass, set straight into the frames<br>
+  <span class="sw" style="background:#8d8398"></span>FRP frame — side frame, upper/bottom frame, vertical profile<br>
   <span class="sw" style="background:#1c2733"></span>Solar field hidden behind the +3 600 upstand
 </div>
 <div id="badge">SMART HOUSE V4 · expandable-houses · 2026-08-14</div>
@@ -246,8 +251,12 @@ const D = {
   doorJamb: 98,       // door stile — group frames 45 + 35 + 98 + 98 = 276 = 273.10 − (837.9+819.1+798)
   door: 798,          // 79.80  door glass width
   doorGlazH: 2314,    // 231.40 door glass height
-  doorHead: 118,      // door head    (118 + 2 314 + 118 = 2 550)
-  doorRail: 118,      // bottom rail / threshold
+  doorHead: 118,      // door head / UPPER FRAME  (118 + 2 314 + 118 = 2 550)
+  doorRail: 118,      // bottom rail / BOTTOM FRAME
+  winGlazH: 2314,     // the windows are frameless: the glass goes straight into the
+                      // door stile, the upper frame, the bottom frame and the side
+                      // frame — the same 118 members as the door, so the window glass
+                      // is the same 2 314 as the door glass in the same 2 550 opening
   mull: 70,
   vig: 12.4,
   frameFace: 50,
@@ -455,7 +464,7 @@ const STAGES = [
   {key:'skinOut',name:'4 · Outer skin sheets',
    text:'<b>Step 4 — outer skin, sheet by sheet.</b> The same 3 mm FRP sheets screwed to the <b>outer</b> face of the same profiles. This completes the wall itself: <b>3 mm FRP + 70 mm profile + 3 mm FRP = 76 mm</b>. That IS the construction — there is no separate sandwich shell over it. 76 + 2 550 + 80 = the 2 706 mm on the drawing.'},
   {key:'openings',name:'5 · Windows &amp; doors',
-   text:'<b>Step 5 — windows and doors, front and rear.</b> Both gable facades are the same: 45 mm corner jamb, 837.9 mm VIG lite, 35 mm mullion, 819.1 mm lite, then a 98 · 798 · 98 door — the 2 731 mm group off the drawing, twice, either side of the 1 987 core. Every lite runs the full 2 550 mm clear height, so the head lands at +2 626 — <b>226 mm above two panel courses</b>. Door glass 798 × 2 314 with a 118 mm head and bottom rail. The long side walls have no openings.'},
+   text:'<b>Step 5 — windows and doors, front and rear.</b> Both gable facades are the same. Per wing, <b>two windows either side of a single 35 mm vertical profile</b>: 45 mm side frame · 837.9 window · 35 profile · 819.1 window · then the 98 · 798 · 98 door — the 2 731 mm group off the drawing, twice, either side of the 1 987 core. <b>The windows have no frame of their own</b> — the glass sits straight into the door stile, the side frame, and a 118 mm upper and 118 mm bottom frame, exactly as the door does, so every pane is 2 314 tall in the 2 550 opening and the head lands at +2 626, <b>226 mm above two panel courses</b>. The long side walls have no openings.'},
   {key:'deco',   name:'6 · PU stone &amp; timber',
    text:'<b>Step 6 — the decorative skin, glued on.</b> Notched PU adhesive combed straight onto the outer 3 mm FRP sheets — <b>no sub-frame, no rails, no cavity</b>. Then the 600 × 1 200 × 30 mm artificial PU white-stone plates, butt-jointed, three full courses ±0 → 1 200 → 2 400 → 3 600, and between the doors the <b>30 mm larch panel — same thickness, same glue, flush with the stone</b>. Build-out per face is the 30 mm of the plate and nothing more.'},
   {key:'solar',  name:'7 · Solar on the roof',
@@ -712,29 +721,35 @@ function sheetRun(total){
 })();
 
 /* ═══════════════════════════════════════════════════════════════════════
-   7. STAGE 3 + 4 — CASINGS, FRAMES, VIG GLAZING, DOORS
+   7. STAGE 5 — FRAMES, GLASS AND DOORS
+   Per wing, exactly TWO windows, one either side of the single vertical
+   profile between them. The windows have NO frame of their own: the glass is
+   set straight into the door stile, the upper frame, the bottom frame and the
+   side frame — the same 118 mm head and 118 mm bottom rail as the door, so
+   window glass and door glass are both 2 314 mm tall in a 2 550 opening.
    ═══════════════════════════════════════════════════════════════════════ */
 (function openings(){
-  const zFace = HL - M(D.frameDepth/2);    // frame centre; outer face flush with the wall,
-                                           // i.e. D.reveal (70 mm) behind the cladding face
-  const H = D.glazH;                       // 2 550 — the full clear height
+  const zFace = HL - M(D.frameDepth/2);    // one frame plane; outer face flush with the wall,
+                                           // i.e. D.reveal (30 mm) behind the panel face
+  const H = D.glazH;                       // 2 550 — the full clear opening
+  const gh = D.winGlazH, hd = D.doorHead, sl = D.doorRail;   // 118 + 2 314 + 118 = 2 550
 
   [1,-1].forEach(sz=>{
     const z  = sz*zFace;
-    const zc = z - sz*M(28);               // FRP carcass recessed behind the bronze
     const off = new THREE.Vector3(0, 0, sz*.7), offG = new THREE.Vector3(0, 0, sz*.5);
 
     GSEQ.forEach((s, si)=>{
       const w = s.x1 - s.x0, cx = M((s.x0+s.x1)/2);
       if(s.type === 'slat') return;
 
-      // ── stage 3: the frame carcass — corner jambs, the 35 mm mullion, door stiles
+      // ── the SIDE frame at the gable corner, full height of the opening
       if(s.type === 'jamb'){
-        add(box(D.jamb, H, D.prof.h, mat.casing, cx, M(H/2), zc), 'openings', si, off);
+        add(box(D.jamb, H, D.frameDepth, mat.casing, cx, M(H/2), z), 'openings', si, off);
         return;
       }
+      // ── THE vertical profile: the one and only member between the two windows
       if(s.type === 'beam'){
-        add(box(D.beam, H, D.prof.h, mat.casing, cx, M(H/2), zc), 'openings', si, off);
+        add(box(D.beam, H, D.frameDepth, mat.casing, cx, M(H/2), z), 'openings', si, off);
         return;
       }
       if(s.type === 'dstile'){
@@ -742,15 +757,18 @@ function sheetRun(total){
         return;
       }
 
-      // ── stage 4: the glazing itself, at the dimensioned sizes
+      // ── a window: upper frame, bottom frame, and the glass straight into them.
+      //    Nothing frames the glass on the vertical edges — that is the side
+      //    frame on one side and the vertical profile / door stile on the other.
       if(s.type === 'lite'){
-        // frameless VIG, floor to ceiling — the drawing shows no head or sill member
-        const pane = box(w, H, D.vig, mat.glass, cx, M(H/2), z);
+        add(box(w, hd, D.frameDepth, mat.casing, cx, M(H - hd/2), z), 'openings', si, off);
+        add(box(w, sl, D.frameDepth, mat.casing, cx, M(sl/2),      z), 'openings', si, off);
+        const pane = box(w, gh, D.vig, mat.glass, cx, M(sl + gh/2), z);
         pane.castShadow = false;
         add(pane, 'openings', 40+si, offG);
-        // sheer curtain behind the outermost lite of each wing, as the reference photo
+        // sheer curtain behind the outermost window of each wing, as the reference photo
         if(Math.abs(s.x0 + s.x1)/2 > D.W/2 - D.jamb - D.lite1 - 40){
-          const cu = box(w - 60, H - 260, 8, mat.curtain, cx, M(H/2 - 60), z - sz*M(140));
+          const cu = box(w - 60, gh - 200, 8, mat.curtain, cx, M(sl + gh/2 - 40), z - sz*M(140));
           cu.castShadow = false; add(cu, 'openings', 40+si, offG);
         }
         return;
@@ -1081,9 +1099,9 @@ function dimLine(a, b, text, off = new THREE.Vector3(0,0,0), scale = 1){
         l2 = seq.filter(s=>s.type==='lite')[1], dr = seq.find(s=>s.type==='door'),
         ds = seq.find(s=>s.type==='dstile'), sl = seq.find(s=>s.type==='slat');
   dimLine(new THREE.Vector3(M(l1.x0), M(D.glazH), zf), new THREE.Vector3(M(l1.x1), M(D.glazH), zf),
-          '837.9 mm VIG lite', new THREE.Vector3(0,.55,0), .8);
+          '837.9 window — glass straight into the frames', new THREE.Vector3(0,.55,0), .8);
   dimLine(new THREE.Vector3(M(l2.x0), M(D.glazH), zf), new THREE.Vector3(M(l2.x1), M(D.glazH), zf),
-          '819.1 mm VIG lite', new THREE.Vector3(0,1.0,0), .8);
+          '819.1 window — 2 314 glass, no window frame', new THREE.Vector3(0,1.0,0), .8);
   dimLine(new THREE.Vector3(M(dr.x0), M(D.glazH), zf), new THREE.Vector3(M(dr.x1), M(D.glazH), zf),
           '798 mm door glass', new THREE.Vector3(0,1.45,0), .8);
   dimLine(new THREE.Vector3(M(dr.x0), M(D.doorRail), zf),
