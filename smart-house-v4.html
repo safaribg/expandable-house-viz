@@ -53,15 +53,17 @@
 <div id="ui" class="pane">
   <h1>SMART HOUSE V4 &mdash; facade &amp; panel installation</h1>
   <p class="sub">Built to Ivan&rsquo;s dimensioned elevation: 7 449 &times; 6 058 mm, 2 706 mm high, 2 550 mm clear.
-  Glass 837.9 / 819.1 / 798 &times; 2 314. Over the construction go <b>3 mm FRP sheets, 1 200 wide</b>, screwed to
-  the square profiles inside and out; the 60 &times; 120 cm &times; 30 mm PU stone is then <b>glued flat to that skin</b> —
-  no sub-frame, no cavity, 30 mm build-out. The larch panel is the same 30 mm, glued the same way, flush with
-  the stone. Three full 1 200 courses to +3 600, so the glazing head sits <b>226 mm above two courses</b> and the
-  third course carries the solar upstand 894 mm clear of the roof. <b>Front and rear gables are identical.</b></p>
+  Glass 837.9 / 819.1 / 798 &times; 2 314. It arrives <b>folded at 2 506 mm</b> and unfolds to 7 449. The wall is
+  <b>3 mm FRP + 70 mm profile + 3 mm FRP = 76 mm</b> — that IS the construction, not a shell over it. The
+  60 &times; 120 cm &times; 30 mm PU stone and the 30 mm larch panel are then <b>glued flat onto the outer skin</b> —
+  no sub-frame, no cavity, 30 mm build-out. Three full 1 200 courses to +3 600, so the glazing head sits
+  <b>226 mm above two courses</b> and the third course hides the solar 894 mm clear of the roof.
+  <b>Front and rear gables are identical.</b></p>
 
   <div class="grp" id="stageBtns"></div>
   <div class="grp">
     <button data-view="hero" class="on">Hero</button>
+    <button data-view="folded">Folded</button>
     <button data-view="front">Front</button>
     <button data-view="rear">Rear</button>
     <button data-view="side">Side / solar proof</button>
@@ -132,13 +134,25 @@
   <div class="metric"><span>Boards</span><b id="mSlatN">—</b></div>
   <div class="metric"><span>On both gables</span><b>yes, identical</b></div>
 
-  <h3>Construction</h3>
-  <div class="metric"><span>Wall / floor sandwich</span><b>76 mm (3+70+3)</b></div>
+  <h3>The wall — there is no separate shell</h3>
+  <div class="metric"><span>Build-up</span><b>3 mm FRP + 70 mm profile + 3 mm FRP</b></div>
+  <div class="metric"><span>= wall / floor</span><b>76 mm total</b></div>
+  <div class="metric"><span>The 70 mm middle</span><b>is the profile frame itself</b></div>
   <div class="metric"><span>Skin sheet</span><b>3 mm FRP, 1 200 mm wide</b></div>
-  <div class="metric"><span>Skin on</span><b>outside AND inside face</b></div>
+  <div class="metric"><span>Sheet height</span><b>to the wall / floor span</b></div>
+  <div class="metric"><span>Skin on</span><b>inside AND outside face</b></div>
   <div class="metric"><span>Skin fixing</span><b>screwed to the square profile</b></div>
   <div class="metric"><span>Screw pitch</span><b>600 mm on sheet edges</b></div>
   <div class="metric"><span>Field profile</span><b>70 &times; 35 &times; 4 FRP</b></div>
+
+  <h3>Fold / transport</h3>
+  <div class="metric"><span>Folded width</span><b>2 506 mm</b></div>
+  <div class="metric"><span>Expanded width</span><b>7 449 mm</b></div>
+  <div class="metric"><span>Length (unchanged)</span><b>6 058 mm</b></div>
+  <div class="metric"><span>Floor core / hinge</span><b>2 200 mm</b></div>
+  <div class="metric"><span>Roof core / hinge</span><b>2 360 mm</b></div>
+  <div class="metric"><span>Deploy order</span><b>roof wings &rarr; floors &rarr; walls</b></div>
+  <div class="metric"><span>Skinned</span><b>after unfolding, on site</b></div>
   <div class="metric"><span>Corner column</span><b>70 &times; 70 (2 &times; 70&times;35)</b></div>
   <div class="metric"><span>Wall / roof stud pitch</span><b>600 mm</b></div>
   <div class="metric"><span>Floor joist pitch</span><b>400 mm</b></div>
@@ -153,8 +167,9 @@
 </div>
 
 <div id="legend" class="pane">
-  <span class="sw" style="background:#5c6a72"></span>FRP structure — 70&times;35&times;4 profiles, 70&times;70 columns<br>
-  <span class="sw" style="background:#bfbcb2"></span>3 mm FRP skin — 1 200 wide sheets, screwed both faces<br>
+  <span class="sw" style="background:#5c6a72"></span>70&times;35&times;4 FRP profile frame — the 70 mm middle of the wall<br>
+  <span class="sw" style="background:#e4e0d6"></span>3 mm FRP inner skin sheet — 1 200 wide, screwed on<br>
+  <span class="sw" style="background:#bfbcb2"></span>3 mm FRP outer skin sheet — 3 + 70 + 3 = the 76 mm wall<br>
   <span class="sw" style="background:#9aa3ab"></span>Screws into the outer square profile, 600 mm centres<br>
   <span class="sw" style="background:#8a8578"></span>PU adhesive bed — no sub-frame anywhere<br>
   <span class="sw" style="background:#efece4"></span>60 &times; 120 cm &times; 30 mm PU white-stone panel, glued<br>
@@ -431,24 +446,22 @@ function box(wmm, hmm, dmm, material, x, y, z){
    value slides parts in from an offset so the build reads as an assembly.
    ═══════════════════════════════════════════════════════════════════════ */
 const STAGES = [
-  {key:'frame',  name:'1 · FRP structure',
-   text:'<b>Step 1 — structural frame.</b> 70×35×4 FRP profiles: floor joists at 400 mm, wall studs and roof joists at 600 mm, 70×70 built-up corner columns. The expanded skeleton is 7 449 × 6 058 mm with a 2 550 mm clear height.'},
-  {key:'shell',  name:'2 · 3 mm FRP skin',
-   text:'<b>Step 2 — the FRP skin.</b> 3 mm FRP sheets, <b>1 200 mm wide</b>, cut to the height of the wall or the span of the floor, laid over the construction and <b>screwed to the outer square profile of every wall and floor member — inside face and outside face alike</b>. Soft glass wool loose in the 70 mm cavity between the two skins. Floor and wall build 3 + 70 + 3 = 76 mm, the roof 80 — 76 + 2 550 + 80 = the 2 706 on the drawing. This skin is the substrate everything else glues to. Both gable ends stay open apart from the 1 987 core: they are glazed corner to corner, <b>front and rear identical</b>.'},
-  {key:'casing', name:'3 · Openings &amp; frames',
-   text:'<b>Step 3 — opening frames.</b> The gable carcass, element by element: 45 mm corner jamb, 35 mm FRP mullion between the two lites, and the 98 mm door stiles. Every member runs the full 2 550 mm clear height — the openings are set by the construction, not by the panel grid.'},
-  {key:'glaz',   name:'4 · Windows &amp; doors',
-   text:'<b>Step 4 — glazing, at the dimensioned sizes.</b> Per wing: 837.9 and 819.1 mm frameless VIG lites, each carrying the full 2 550 mm of glass floor to ceiling, and a 798 × 2 314 mm door glass with a 118 mm head and a 118 mm bottom rail. Group = 45 · 837.9 · 35 · 819.1 · 98 · 798 · 98 = 2 731 mm — the drawing’s 273.10. Two groups + the core: 2 × 2 731 + 1 987 = 7 449. The glazing head lands at +2 626 — <b>226 mm ABOVE two panel courses</b>, which is the whole point of this revision.'},
-  {key:'glue',   name:'5 · Adhesive bed',
-   text:'<b>Step 5 — adhesive, straight onto the skin.</b> Notched-trowel PU adhesive combed over the outer 3 mm FRP sheets. <b>There is no cladding sub-frame</b> — no brackets, no rails, no ventilated cavity. The facade panels bond flat to the skin, so the build-out per face is the 30 mm of the panel and nothing more, and the glazing sits in a 30 mm reveal.'},
-  {key:'clad',   name:'6 · 60 × 120 PU panels',
-   text:'<b>Step 6 — facade panels, course by course.</b> 600 wide × 1 200 high × 30 mm artificial PU white-stone panels, <b>glued to the FRP skin</b>, butt-jointed, set out from the underside of the floor. Three FULL courses: ±0 → 1 200 → 2 400 → 3 600. The construction top (+2 706) falls inside course 3, so 894 mm of that course stands above the roof as the solar upstand. On the gable ends the panels stop at the +2 626 glazing head and are cut there — the openings keep their true 2 550 mm height.'},
-  {key:'slat',   name:'7 · Timber panel',
-   text:'<b>Step 7 — timber feature panel.</b> A <b>30 mm larch panel — the same thickness as the PU stone — glued onto the same 3 mm FRP skin</b>, so its face finishes flush with the stone. It fills the whole 1 987 × 2 550 mm central field, boarded up in 10 × 198.7 mm boards with a 4 mm shadow groove at each joint. Identical on the front and the rear gable.'},
-  {key:'solar',  name:'8 · Coping &amp; solar',
-   text:'<b>Step 8 — coping and hidden solar.</b> 140 × 40 mm coping cap, then 12 modules of 1 722 × 1 134 mm at 8° on 100 mm rails. Highest point +3 014 mm — 586 mm below the +3 600 upstand, so nothing is visible from the ground on any side.'},
-  {key:'site',   name:'9 · Finished outlook',
-   text:'<b>Step 9 — finished outlook.</b> Travertine terrace, gravel bed, lavender, ornamental grasses and olive trees. Late-afternoon sun, matching the reference photograph.'}
+  {key:'frame',  name:'1 · Folded construction',
+   text:'<b>Step 1 — the construction arrives folded.</b> Only the 70×35×4 FRP profile frame: floor joists at 400 mm, roof joists at 600 mm, 70×70 built-up corner columns, and the side walls hinged to the wing floors. Folded envelope <b>2 506 mm</b> wide — the wing floors stand vertical against the 2 200 mm core and the wing roofs hang down outboard of them.'},
+  {key:'unfold', name:'2 · Unfold',
+   text:'<b>Step 2 — unfold on site.</b> Roof wings swing out first, then the wing floors drop with the side walls still hinged to them, then the walls stand up off the floor edge. <b>2 506 → 7 449 mm</b> across the fold; the length stays 6 058. Nothing is skinned yet — this is the bare 70 mm construction.'},
+  {key:'skinIn', name:'3 · Inner skin sheets',
+   text:'<b>Step 3 — inner skin.</b> 3 mm FRP sheets, <b>1 200 mm wide</b>, cut to the height of the wall or the span of the floor, screwed to the <b>inner</b> face of the square profiles on every wall, the ceiling and the floor — everywhere there is no window or door. The gable ends stay open apart from the 1 987 mm core.'},
+  {key:'skinOut',name:'4 · Outer skin sheets',
+   text:'<b>Step 4 — outer skin, sheet by sheet.</b> The same 3 mm FRP sheets screwed to the <b>outer</b> face of the same profiles. This completes the wall itself: <b>3 mm FRP + 70 mm profile + 3 mm FRP = 76 mm</b>. That IS the construction — there is no separate sandwich shell over it. 76 + 2 550 + 80 = the 2 706 mm on the drawing.'},
+  {key:'openings',name:'5 · Windows &amp; doors',
+   text:'<b>Step 5 — windows and doors, front and rear.</b> Both gable facades are the same: 45 mm corner jamb, 837.9 mm VIG lite, 35 mm mullion, 819.1 mm lite, then a 98 · 798 · 98 door — the 2 731 mm group off the drawing, twice, either side of the 1 987 core. Every lite runs the full 2 550 mm clear height, so the head lands at +2 626 — <b>226 mm above two panel courses</b>. Door glass 798 × 2 314 with a 118 mm head and bottom rail. The long side walls have no openings.'},
+  {key:'deco',   name:'6 · PU stone &amp; timber',
+   text:'<b>Step 6 — the decorative skin, glued on.</b> Notched PU adhesive combed straight onto the outer 3 mm FRP sheets — <b>no sub-frame, no rails, no cavity</b>. Then the 600 × 1 200 × 30 mm artificial PU white-stone plates, butt-jointed, three full courses ±0 → 1 200 → 2 400 → 3 600, and between the doors the <b>30 mm larch panel — same thickness, same glue, flush with the stone</b>. Build-out per face is the 30 mm of the plate and nothing more.'},
+  {key:'solar',  name:'7 · Solar on the roof',
+   text:'<b>Step 7 — solar panels on the roof.</b> 140 × 40 mm coping cap, then 12 modules of 1 722 × 1 134 mm at 8° on 100 mm rails. Highest point +3 014 mm — 586 mm below the +3 600 upstand, so the array is invisible from the ground on every side.'},
+  {key:'site',   name:'8 · Finished outlook',
+   text:'<b>Step 8 — finished outlook.</b> Travertine terrace, gravel bed, lavender, ornamental grasses and olive trees. Late-afternoon sun, matching the reference photograph.'}
 ];
 
 const parts = [];   // {mesh, stage, slot, from}
@@ -463,67 +476,141 @@ function add(mesh, stageKey, slot = 0, fromVec = null){
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   5. STAGE 1 — FRP STRUCTURE
+   4b. FOLD RIG
+   The construction is delivered folded: a 2 200 mm core with a hinged floor
+   wing each side, the side wall hinged to the outer edge of that floor, and a
+   roof wing hinged on the 2 360 mm roof core. Kinematics and the deploy order
+   (roof wings → floors → walls stand up) are carried over from the V2.7
+   folding model so the two viewers agree.
+   Only the STAGE 1 frame folds — everything else is installed after unfolding.
+   ═══════════════════════════════════════════════════════════════════════ */
+const FOLD = {
+  coreF: 1100,        // floor hinge half-width — 2 200 mm floor core
+  coreR: 1180,        // roof  hinge half-width — 2 360 mm roof core
+  park:    73         // folded roof wing parks outboard: 1 180 + 73 = 1 253 → 2 506 envelope
+};
+const rig = {core:new THREE.Group(), floor:{}, wall:{}, roof:{}};
+scene.add(rig.core); rig.core.userData.acc = new THREE.Vector3(0,0,0);
+[1,-1].forEach(s=>{
+  const f = new THREE.Group(); f.position.set(s*M(FOLD.coreF), 0, 0); scene.add(f);
+  const w = new THREE.Group(); w.position.set(s*(HW - M(FOLD.coreF)), 0, 0); f.add(w);
+  const r = new THREE.Group(); r.position.set(s*M(FOLD.coreR), M(D.roofFin), 0); scene.add(r);
+  f.userData.acc = new THREE.Vector3(s*M(FOLD.coreF), 0, 0);
+  w.userData.acc = new THREE.Vector3(s*HW, 0, 0);              // floor offset + wall offset
+  r.userData.acc = new THREE.Vector3(s*M(FOLD.coreR), M(D.roofFin), 0);
+  rig.floor[s] = f; rig.wall[s] = w; rig.roof[s] = r;
+});
+
+/* like add(), but parents the mesh to a fold node; the mesh is positioned in
+   world coordinates and converted to the node's local frame here */
+function addFold(mesh, node, slot = 0, fromVec = null){
+  mesh.position.sub(node.userData.acc);
+  node.add(mesh);
+  parts.push({mesh, stage:0, slot, home:mesh.position.clone(), from:fromVec});
+  return mesh;
+}
+
+/* a member running the full width along X, split at the hinge lines so the core
+   piece stays put and the two wing pieces fold away with their wing */
+function spanX(totalW, hmm, dmm, material, y, z, slot, carrier){
+  const half = carrier === 'floor' ? M(FOLD.coreF) : M(FOLD.coreR);
+  addFold(box(half*2000, hmm, dmm, material, 0, y, z), rig.core, slot);
+  [1,-1].forEach(s=>{
+    const x1 = M(totalW/2), w = (x1 - half)*1000;
+    if(w < 5) return;
+    addFold(box(w, hmm, dmm, material, s*(half + x1)/2, y, z),
+            carrier === 'floor' ? rig.floor[s] : rig.roof[s], slot);
+  });
+}
+
+/* deploy: t = 0 folded for transport, t = 1 expanded.
+   Same order as V2.7 — roof wings open first, then the floors drop with the
+   walls still hinged to them, then the walls stand up. */
+const easeF = t => t<=0 ? 0 : t>=1 ? 1 : t*t*(3-2*t);
+let foldT = 1;
+function setFold(t){
+  foldT = t;
+  const tr = easeF(t/0.34), tf = easeF((t-0.34)/0.37), tw = easeF((t-0.71)/0.29);
+  [1,-1].forEach(s=>{
+    rig.floor[s].rotation.z =  s*(1-tf)*(Math.PI/2);   // stored: wing floor vertical against the core
+    rig.wall[s].rotation.z  =  s*(1-tw)*(Math.PI/2);   // stored: wall lying flat on its floor, toward the core
+    rig.roof[s].rotation.z  = -s*(1-tr)*(Math.PI/2);   // stored: wing roof hangs down, outboard
+    rig.roof[s].position.x  =  s*(M(FOLD.coreR) + (1-tr)*M(FOLD.park));
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   5. STAGE 1 — FRP STRUCTURE, built into the fold rig
+   The 70 mm profile frame is the MIDDLE of the wall: 3 mm FRP + 70 mm profile
+   + 3 mm FRP is the wall itself, so there is nothing else structural to add.
+   Members are emitted at their expanded world position and parented to the
+   core, a wing floor, a wing wall or a wing roof so the whole thing folds.
    ═══════════════════════════════════════════════════════════════════════ */
 (function structure(){
-  const yF = M(-D.plinth/2);                       // base frame band, below FFL
-  const P = D.prof;
+  const P = D.prof, yFl = M(-D.panelThk/2), yHd = M(D.clear + P.h/2);
 
-  // base perimeter + lifting frame
-  add(box(D.W, D.col, D.col, mat.frpCol, 0, M(-D.panelThk/2), HL - M(D.col/2)), 'frame', 0);
-  add(box(D.W, D.col, D.col, mat.frpCol, 0, M(-D.panelThk/2), -HL + M(D.col/2)), 'frame', 0);
-  add(box(D.col, D.col, D.L, mat.frpCol, HW - M(D.col/2), M(-D.panelThk/2), 0), 'frame', 0);
-  add(box(D.col, D.col, D.L, mat.frpCol, -HW + M(D.col/2), M(-D.panelThk/2), 0), 'frame', 0);
+  /* ── base perimeter: the two long beams run across the fold and split; the
+        two end beams sit on the wing floor outer edges ────────────────────── */
+  [1,-1].forEach(sz=> spanX(D.W, D.col, D.col, mat.frpCol, yFl, sz*(HL - M(D.col/2)), 0, 'floor'));
+  [1,-1].forEach(sx=> addFold(box(D.col, D.col, D.L, mat.frpCol,
+                                  sx*(HW - M(D.col/2)), yFl, 0), rig.floor[sx], 0));
 
-  // floor joists @400 running across the width
+  /* ── floor joists @400 across the width — each one splits at the hinge ──── */
   const nJ = Math.floor(D.L/D.joistPitch);
-  for(let i=1;i<nJ;i++){
-    const z = -HL + M(i*D.joistPitch);
-    add(box(D.W - 2*D.col, P.w, P.h, mat.frp, 0, M(-D.panelThk/2), z), 'frame', 1);
-  }
-  // floor cross-blocking at thirds
-  [-1,1].forEach(s=> add(box(P.h, P.w, D.L*0.98, mat.frp, s*M(D.W/6), M(-D.panelThk/2), 0), 'frame', 1));
+  for(let i=1;i<nJ;i++)
+    spanX(D.W - 2*D.col, P.w, P.h, mat.frp, yFl, -HL + M(i*D.joistPitch), 1, 'floor');
+  // floor cross-blocking at thirds — outboard of the floor hinge, so it folds
+  [-1,1].forEach(s=> addFold(box(P.h, P.w, D.L*0.98, mat.frp, s*M(D.W/6), yFl, 0), rig.floor[s], 1));
 
-  // corner columns 70×70
+  /* ── the side walls: corner columns, studs and rails all hinge together off
+        the outer edge of their wing floor ────────────────────────────────── */
   [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([sx,sz])=>{
-    add(box(D.col, D.clear, D.col, mat.frpCol,
-            sx*(HW - M(D.col/2)), M(D.clear/2), sz*(HL - M(D.col/2))), 'frame', 2);
+    addFold(box(D.col, D.clear, D.col, mat.frpCol,
+                sx*(HW - M(D.col/2)), M(D.clear/2), sz*(HL - M(D.col/2))), rig.wall[sx], 2);
   });
-
-  // wall studs @600 — long sides
   const nS = Math.round(D.L/D.studPitch);
   for(let i=1;i<nS;i++){
     const z = -HL + M(i*D.L/nS);
-    [1,-1].forEach(sx=> add(box(P.w, D.clear, P.h, mat.frp, sx*(HW - M(P.w/2)), M(D.clear/2), z), 'frame', 3));
+    [1,-1].forEach(sx=> addFold(box(P.w, D.clear, P.h, mat.frp,
+                                    sx*(HW - M(P.w/2)), M(D.clear/2), z), rig.wall[sx], 3));
   }
-  // wall studs @600 — gable ends
-  const nG = Math.round(D.W/D.studPitch);
-  for(let i=1;i<nG;i++){
-    const x = -HW + M(i*D.W/nG);
-    [1,-1].forEach(sz=> add(box(P.h, D.clear, P.w, mat.frp, x, M(D.clear/2), sz*(HL - M(P.w/2))), 'frame', 3));
-  }
-  // head + sill rails on all four walls
   [M(D.clear) - M(P.w/2), M(P.w/2)].forEach(y=>{
-    add(box(D.W, P.w, P.h, mat.frp, 0, y, HL - M(P.h/2)), 'frame', 4);
-    add(box(D.W, P.w, P.h, mat.frp, 0, y, -HL + M(P.h/2)), 'frame', 4);
-    [1,-1].forEach(sx=> add(box(P.h, P.w, D.L, mat.frp, sx*(HW - M(P.h/2)), y, 0), 'frame', 4));
+    [1,-1].forEach(sx=> addFold(box(P.h, P.w, D.L, mat.frp,
+                                    sx*(HW - M(P.h/2)), y, 0), rig.wall[sx], 4));
   });
 
-  // roof joists @600 across the width + the full-length closing beams (step-4 beams)
-  const nR = Math.round(D.L/D.studPitch);
-  for(let i=1;i<nR;i++){
-    const z = -HL + M(i*D.L/nR);
-    add(box(D.W, P.h, P.w, mat.frp, 0, M(D.clear + P.h/2), z), 'frame', 5);
+  /* ── gable ends. They are glazed corner to corner over the full 2 550, so the
+        ONLY frame here is inside the 1 987 core that carries the timber panel:
+        no studs and no head/sill rails across the glazed field — those members
+        are the 45 / 35 / 98 mm opening frames, installed in step 5. ───────── */
+  const sf = GSEQ.find(s=>s.type==='slat');
+  const nC = Math.max(2, Math.round((sf.x1 - sf.x0)/D.studPitch));
+  for(let i=0;i<=nC;i++){
+    const x = M(sf.x0 + i*(sf.x1 - sf.x0)/nC);
+    [1,-1].forEach(sz=> addFold(box(P.h, D.clear, P.w, mat.frp,
+                                    x, M(D.clear/2), sz*(HL - M(P.w/2))), rig.core, 3));
   }
-  [1,-1].forEach(sx=> add(box(P.w, P.h, D.L, mat.frpCol, sx*(HW - M(P.w/2)), M(D.clear + P.h/2), 0), 'frame', 5));
+  [M(D.clear) - M(P.w/2), M(P.w/2)].forEach(y=>{
+    [1,-1].forEach(sz=> addFold(box(sf.x1 - sf.x0, P.w, P.h, mat.frp,
+                                    M((sf.x0+sf.x1)/2), y, sz*(HL - M(P.h/2))), rig.core, 4));
+  });
+
+  /* ── roof joists @600 across the width — split on the 2 360 roof core ──── */
+  const nR = Math.round(D.L/D.studPitch);
+  for(let i=1;i<nR;i++)
+    spanX(D.W, P.h, P.w, mat.frp, yHd, -HL + M(i*D.L/nR), 5, 'roof');
+  // roof edge beams over the side walls — they travel with the roof wings
+  [1,-1].forEach(sx=> addFold(box(P.w, P.h, D.L, mat.frpCol,
+                                  sx*(HW - M(P.w/2)), yHd, 0), rig.roof[sx], 5));
 })();
 
 /* ═══════════════════════════════════════════════════════════════════════
    6. STAGE 2 — THE 3 mm FRP SKIN
    3 mm FRP sheets, 1 200 mm wide, cut to the height of the wall or the span of
-   the floor, screwed to the outer square profile of every member — INSIDE face
-   and OUTSIDE face alike. Glass wool loose in the 70 mm between the two skins.
-   There is no sub-frame anywhere: this skin is what the facade glues to.
+   the floor, screwed to the square profile of every member. Step 3 does the
+   INNER face, step 4 the OUTER face. There is NO separate sandwich shell:
+   3 mm FRP + 70 mm profile + 3 mm FRP IS the wall construction, and the
+   70 mm middle is the stage-1 profile frame itself.
    ═══════════════════════════════════════════════════════════════════════ */
 
 /* 1 200 mm sheets across a run, centred, with an equal cut sheet at each end */
@@ -538,20 +625,20 @@ function sheetRun(total){
   return out;
 }
 
-(function shell(){
-  const t = D.panelThk, sk = D.skin.t, core = t - 2*sk;   // 3 + 70 + 3
+(function skins(){
+  const t = D.panelThk, sk = D.skin.t, core = t - 2*sk;   // 3 + 70 + 3 — the 70 IS the profile frame
   const gap = 2;                                          // sheet joint, drawn only
 
   /* a run of 1 200-wide sheets on one face, plus the screws that hold it down.
      dir 'x' = sheets run along X (gable walls, floor, roof), 'z' = along Z (side walls) */
-  function skinFace(run, dir, hmm, material, pos, slot, off, vertical = true){
+  function skinFace(run, dir, hmm, material, pos, stage, slot, off, vertical = true){
     run.forEach((s, i)=>{
       const w = s.w - gap;
       const dims = dir === 'x'
         ? (vertical ? [w, hmm, sk] : [w, sk, hmm])
         : (vertical ? [sk, hmm, w] : [hmm, sk, w]);
       const p = pos(s.c);
-      add(box(...dims, material, p.x, p.y, p.z), 'shell', slot, off);
+      add(box(...dims, material, p.x, p.y, p.z), stage, slot, off);
       // screws into the square profile behind, up the sheet edge at 600 mm centres
       if(i === 0) return;
       const e = s.c - s.w/2;
@@ -560,70 +647,58 @@ function sheetRun(total){
         const sd = D.skin.screwD;
         const sdim = dir === 'x'
           ? (vertical ? [sd, sd, sk+3] : [sd, sk+3, sd])
-          : (vertical ? [sk+3, sd, sd] : [sk+3, sd, sd]);
-        add(box(...sdim, mat.screw, sp.x, sp.y, sp.z), 'shell', slot, off);
+          : [sk+3, sd, sd];
+        add(box(...sdim, mat.screw, sp.x, sp.y, sp.z), stage, slot, off);
       }
     });
   }
 
-  /* ── floor: 3 mm sheets under and over the 70 mm joist zone ─────────────── */
-  const fRun = sheetRun(D.W);
-  add(box(D.W, core, D.L, mat.core, 0, M(-sk - core/2), 0), 'shell', 0, new THREE.Vector3(0,-1.6,0));
-  const fp = y => (c,q) => ({x:M(c), y:M(y), z: q === undefined ? 0 : M(-D.L/2 + q)});
-  skinFace(fRun, 'x', D.L, mat.skin,   fp(-t + sk/2), 0, new THREE.Vector3(0,-1.6,0), false);
-  skinFace(fRun, 'x', D.L, mat.skinIn, fp(-sk/2),     0, new THREE.Vector3(0,-1.6,0), false);
-  // interior finished floor
-  const fl = new THREE.Mesh(new THREE.PlaneGeometry(M(D.W)-.16, M(D.L)-.16), mat.furnDk);
-  fl.rotation.x = -Math.PI/2; fl.position.y = 0.004; fl.receiveShadow = true;
-  add(fl, 'shell', 0, new THREE.Vector3(0,-1.6,0));
-
-  /* ── long side walls: no openings, sheets run along the 6 058 length ────── */
-  const wRun = sheetRun(D.L);
-  [1,-1].forEach(sx=>{
-    const off = new THREE.Vector3(sx*2.4, 0, 0);
-    add(box(core, D.clear, D.L, mat.core, sx*(HW - M(sk + core/2)), M(D.clear/2), 0), 'shell', 1, off);
-    skinFace(wRun, 'z', D.clear, mat.skin,
-             (c,q) => ({x:sx*(HW - M(sk/2)),        y:M(q ?? D.clear/2), z:M(c)}), 1, off);
-    skinFace(wRun, 'z', D.clear, mat.skinIn,
-             (c,q) => ({x:sx*(HW - M(t - sk/2)),    y:M(q ?? D.clear/2), z:M(c)}), 1, off);
-  });
-
-  /* ── gable ends: glazed corner to corner over the full 2 550, so the only
-        solid build is the 1 987 core that carries the timber panel.
-        FRONT AND REAR ARE THE SAME WALL — same sheets, same core, same field. ── */
+  const fRun = sheetRun(D.W), wRun = sheetRun(D.L);
   const sf = GSEQ.find(s=>s.type==='slat');
   const cRun = sheetRun(sf.x1 - sf.x0), cx0 = M((sf.x0 + sf.x1)/2);
-  [1,-1].forEach(sz=>{
-    const off = new THREE.Vector3(0, 0, sz*2.4);
-    add(box(sf.x1-sf.x0, D.clear, core, mat.core, cx0, M(D.clear/2), sz*(HL - M(sk + core/2))), 'shell', 2, off);
-    skinFace(cRun, 'x', D.clear, mat.skin,
-             (c,q) => ({x:cx0 + M(c), y:M(q ?? D.clear/2), z:sz*(HL - M(sk/2))}),     2, off);
-    skinFace(cRun, 'x', D.clear, mat.skinIn,
-             (c,q) => ({x:cx0 + M(c), y:M(q ?? D.clear/2), z:sz*(HL - M(t - sk/2))}), 2, off);
-  });
+  const offFl = new THREE.Vector3(0,-1.0,0), offRf = new THREE.Vector3(0,1.4,0);
+  const fp = y => (c,q) => ({x:M(c), y:M(y), z: q === undefined ? 0 : M(-D.L/2 + q)});
 
-  /* ── roof: same skin both faces over the 74 mm joist zone ──────────────── */
-  const rCore = D.roofThk - 2*sk, offR = new THREE.Vector3(0,2.2,0);
-  add(box(D.W, rCore, D.L, mat.core, 0, M(D.clear + sk + rCore/2), 0), 'shell', 3, offR);
-  const rp = y => (c,q) => ({x:M(c), y:M(y), z: q === undefined ? 0 : M(-D.L/2 + q)});
-  skinFace(fRun, 'x', D.L, mat.skinIn, rp(D.clear + sk/2),            3, offR, false);
-  skinFace(fRun, 'x', D.L, mat.skin,   rp(D.clear + D.roofThk - sk/2), 3, offR, false);
+  /* ═══ STEP 3 — INNER skin: walls, ceiling and floor, wherever there is no
+         window or door. Screwed to the inner face of the same profiles. ═══ */
+  skinFace(fRun, 'x', D.L, mat.skinIn, fp(-sk/2), 'skinIn', 0, offFl, false);   // floor deck
+  const fl = new THREE.Mesh(new THREE.PlaneGeometry(M(D.W)-.16, M(D.L)-.16), mat.furnDk);
+  fl.rotation.x = -Math.PI/2; fl.position.y = 0.006; fl.receiveShadow = true;
+  add(fl, 'skinIn', 0, offFl);
+  skinFace(fRun, 'x', D.L, mat.skinIn, fp(D.clear + sk/2), 'skinIn', 1, offRf, false);  // ceiling
+  [1,-1].forEach(sx=> skinFace(wRun, 'z', D.clear, mat.skinIn,
+      (c,q) => ({x:sx*(HW - M(t - sk/2)), y:M(q ?? D.clear/2), z:M(c)}),
+      'skinIn', 2, new THREE.Vector3(sx*1.6, 0, 0)));
+  [1,-1].forEach(sz=> skinFace(cRun, 'x', D.clear, mat.skinIn,
+      (c,q) => ({x:cx0 + M(c), y:M(q ?? D.clear/2), z:sz*(HL - M(t - sk/2))}),
+      'skinIn', 3, new THREE.Vector3(0, 0, sz*1.6)));
+
+  /* ═══ STEP 4 — OUTER skin, sheet by sheet on the outside of the same frame.
+         Completing it is what makes the 76 mm wall. ═══ */
+  skinFace(fRun, 'x', D.L, mat.skin, fp(-t + sk/2), 'skinOut', 0, offFl, false); // floor soffit
+  [1,-1].forEach(sx=> skinFace(wRun, 'z', D.clear, mat.skin,
+      (c,q) => ({x:sx*(HW - M(sk/2)), y:M(q ?? D.clear/2), z:M(c)}),
+      'skinOut', 1, new THREE.Vector3(sx*1.6, 0, 0)));
+  [1,-1].forEach(sz=> skinFace(cRun, 'x', D.clear, mat.skin,
+      (c,q) => ({x:cx0 + M(c), y:M(q ?? D.clear/2), z:sz*(HL - M(sk/2))}),
+      'skinOut', 2, new THREE.Vector3(0, 0, sz*1.6)));
+  skinFace(fRun, 'x', D.L, mat.skin, fp(D.clear + D.roofThk - sk/2), 'skinOut', 3, offRf, false);
   const memb = new THREE.Mesh(new THREE.PlaneGeometry(M(D.W)-.02, M(D.L)-.02), mat.roofMem);
   memb.rotation.x = -Math.PI/2; memb.position.y = M(D.roofFin) + .002; memb.receiveShadow = true;
-  add(memb, 'shell', 3, offR);
+  add(memb, 'skinOut', 3, offRf);
 
-  // parapet upstand: structural continuation from roof level to +3 600, skinned
-  // both faces exactly like the walls — the PU panels glue straight onto it
+  // parapet upstand: the same 3 + 70 + 3 wall carried up from roof level to
+  // +3 600, erected once the house is open — the PU plates glue straight onto it
   const upH = D.parapet - D.roofFin, upY = M(D.roofFin + upH/2), offU = new THREE.Vector3(0,1.2,0);
   [1,-1].forEach(sz=>{
-    add(box(D.W, upH, core, mat.core,   0, upY, sz*(HL - M(sk + core/2))), 'shell', 4, offU);
-    add(box(D.W, upH, sk,   mat.skin,   0, upY, sz*(HL - M(sk/2))),        'shell', 4, offU);
-    add(box(D.W, upH, sk,   mat.skinIn, 0, upY, sz*(HL - M(t - sk/2))),    'shell', 4, offU);
+    add(box(D.W, upH, core, mat.frp,    0, upY, sz*(HL - M(sk + core/2))), 'skinOut', 4, offU);
+    add(box(D.W, upH, sk,   mat.skin,   0, upY, sz*(HL - M(sk/2))),        'skinOut', 4, offU);
+    add(box(D.W, upH, sk,   mat.skinIn, 0, upY, sz*(HL - M(t - sk/2))),    'skinOut', 4, offU);
   });
   [1,-1].forEach(sx=>{
-    add(box(core, upH, D.L, mat.core,   sx*(HW - M(sk + core/2)), upY, 0), 'shell', 4, offU);
-    add(box(sk,   upH, D.L, mat.skin,   sx*(HW - M(sk/2)),        upY, 0), 'shell', 4, offU);
-    add(box(sk,   upH, D.L, mat.skinIn, sx*(HW - M(t - sk/2)),    upY, 0), 'shell', 4, offU);
+    add(box(core, upH, D.L, mat.frp,    sx*(HW - M(sk + core/2)), upY, 0), 'skinOut', 4, offU);
+    add(box(sk,   upH, D.L, mat.skin,   sx*(HW - M(sk/2)),        upY, 0), 'skinOut', 4, offU);
+    add(box(sk,   upH, D.L, mat.skinIn, sx*(HW - M(t - sk/2)),    upY, 0), 'skinOut', 4, offU);
   });
 
   // interior furniture, visible through the glazing
@@ -633,7 +708,7 @@ function sheetRun(total){
   g.add(box(1600, 340, 800, mat.furn, .3, .17, 1.1));
   for(let i=0;i<4;i++) g.add(box(420, 820, 420, mat.furnDk, -1.9 + i*.55, .41, -.6));
   g.children.forEach(c=>{c.castShadow=false;c.receiveShadow=false;});
-  add(g, 'shell', 5);
+  add(g, 'skinIn', 4);
 })();
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -655,15 +730,15 @@ function sheetRun(total){
 
       // ── stage 3: the frame carcass — corner jambs, the 35 mm mullion, door stiles
       if(s.type === 'jamb'){
-        add(box(D.jamb, H, D.prof.h, mat.casing, cx, M(H/2), zc), 'casing', si, off);
+        add(box(D.jamb, H, D.prof.h, mat.casing, cx, M(H/2), zc), 'openings', si, off);
         return;
       }
       if(s.type === 'beam'){
-        add(box(D.beam, H, D.prof.h, mat.casing, cx, M(H/2), zc), 'casing', si, off);
+        add(box(D.beam, H, D.prof.h, mat.casing, cx, M(H/2), zc), 'openings', si, off);
         return;
       }
       if(s.type === 'dstile'){
-        add(box(D.doorJamb, H, D.frameDepth, mat.bronze, cx, M(H/2), z), 'casing', si, off);
+        add(box(D.doorJamb, H, D.frameDepth, mat.bronze, cx, M(H/2), z), 'openings', si, off);
         return;
       }
 
@@ -672,24 +747,24 @@ function sheetRun(total){
         // frameless VIG, floor to ceiling — the drawing shows no head or sill member
         const pane = box(w, H, D.vig, mat.glass, cx, M(H/2), z);
         pane.castShadow = false;
-        add(pane, 'glaz', si, offG);
+        add(pane, 'openings', 40+si, offG);
         // sheer curtain behind the outermost lite of each wing, as the reference photo
         if(Math.abs(s.x0 + s.x1)/2 > D.W/2 - D.jamb - D.lite1 - 40){
           const cu = box(w - 60, H - 260, 8, mat.curtain, cx, M(H/2 - 60), z - sz*M(140));
-          cu.castShadow = false; add(cu, 'glaz', si, offG);
+          cu.castShadow = false; add(cu, 'openings', 40+si, offG);
         }
         return;
       }
 
       if(s.type === 'door'){
         // 118 head · 2 314 glass · 118 bottom rail = 2 550
-        add(box(w, D.doorHead, D.frameDepth, mat.bronze, cx, M(H - D.doorHead/2), z), 'glaz', si, offG);
-        add(box(w, D.doorRail, D.frameDepth, mat.bronze, cx, M(D.doorRail/2), z), 'glaz', si, offG);
+        add(box(w, D.doorHead, D.frameDepth, mat.bronze, cx, M(H - D.doorHead/2), z), 'openings', 40+si, offG);
+        add(box(w, D.doorRail, D.frameDepth, mat.bronze, cx, M(D.doorRail/2), z), 'openings', 40+si, offG);
         const pane = box(w, D.doorGlazH, D.vig, mat.glass, cx, M(D.doorRail + D.doorGlazH/2), z);
         pane.castShadow = false;
-        add(pane, 'glaz', si, offG);
+        add(pane, 'openings', 40+si, offG);
         const h = box(26, 300, 26, mat.bronze, cx + M(w/2 - 90), M(1080), z + sz*M(40));
-        add(h, 'glaz', si, offG);
+        add(h, 'openings', 40+si, offG);
       }
     });
   });
@@ -726,7 +801,7 @@ let panelCount = 0, cutCount = 0;
     for(let gy = y0g + 45; gy < D.parapet - 20; gy += 90){
       const [gx, gz] = g(0, gluePos);
       add(box(...(f.axis==='z' ? [runW - 40, 26, D.glue] : [D.glue, 26, runW - 40]),
-              mat.glue, gx, M(gy), gz), 'glue', gi++ % 40, offV);
+              mat.glue, gx, M(gy), gz), 'deco', gi++ % 20, offV);
     }
 
     // ── panels, installed bottom course first, left to right
@@ -750,7 +825,7 @@ let panelCount = 0, cutCount = 0;
         // subtle stone tone variation, panel to panel
         const v = (Math.sin(pi*12.9898 + r*78.233 + fi*3.1) * 43758.5453) % 1;
         m.material.color.offsetHSL(0, 0, (Math.abs(v)-.5)*0.028);
-        add(m, 'clad', r*40 + pi, off);
+        add(m, 'deco', 30 + r*40 + pi, off);
         panelCount++;
       });
     });
@@ -768,15 +843,15 @@ let panelCount = 0, cutCount = 0;
     const bd = f.axis==='z' ? [GABLE_W, 15, bt] : [bt, 15, SIDE_W];
     add(box(...bd, mat.coping,
             f.axis==='z' ? 0 : f.sign*(HW + M(bt/2)), M(D.rowBase - 7.5),
-            f.axis==='z' ? f.sign*(HL + M(bt/2)) : 0), 'clad', 0, off);
+            f.axis==='z' ? f.sign*(HL + M(bt/2)) : 0), 'deco', 30, off);
   });
 
   // ── coping cap around the parapet top
   const cy = M(D.parapet + D.coping.t/2);
-  add(box(GABLE_W + 20, D.coping.t, D.coping.w, mat.coping, 0, cy, CLADZ - M(D.coping.w/2 - 10)), 'clad', 900);
-  add(box(GABLE_W + 20, D.coping.t, D.coping.w, mat.coping, 0, cy, -CLADZ + M(D.coping.w/2 - 10)), 'clad', 900);
+  add(box(GABLE_W + 20, D.coping.t, D.coping.w, mat.coping, 0, cy, CLADZ - M(D.coping.w/2 - 10)), 'deco', 930);
+  add(box(GABLE_W + 20, D.coping.t, D.coping.w, mat.coping, 0, cy, -CLADZ + M(D.coping.w/2 - 10)), 'deco', 930);
   [1,-1].forEach(sx=> add(box(D.coping.w, D.coping.t, SIDE_W, mat.coping,
-                              sx*(CLADX - M(D.coping.w/2 - 10)), cy, 0), 'clad', 900));
+                              sx*(CLADX - M(D.coping.w/2 - 10)), cy, 0), 'deco', 930));
   const nG = gableRun.filter(p=>!p.closer).length, nS = sideRun.filter(p=>!p.closer).length;
   const set = (id,v)=> document.getElementById(id).textContent = v;
   set('mPanels', panelCount + ' pieces (' + cutCount + ' cut at the glazing head)');
@@ -806,11 +881,11 @@ let panelCount = 0, cutCount = 0;
     // adhesive bed behind it, same system as the stone
     for(let gy = 45; gy < D.glazH - 20; gy += 90){
       add(box(SLATW - 40, 26, D.glue, mat.glue, M((sf.x0+sf.x1)/2), M(gy),
-              sz*(HL + M(D.glue/2))), 'glue', 0, new THREE.Vector3(0,0,sz*.5));
+              sz*(HL + M(D.glue/2))), 'deco', 0, new THREE.Vector3(0,0,sz*.5));
     }
     for(let i=0;i<S.boards;i++){
       const x = M(x0 + S.pitch/2 + i*S.pitch);
-      add(box(S.pitch - S.groove, D.glazH, S.thk, mat.wood, x, M(D.glazH/2), z), 'slat', i,
+      add(box(S.pitch - S.groove, D.glazH, S.thk, mat.wood, x, M(D.glazH/2), z), 'deco', 200 + i,
           new THREE.Vector3(0,0,sz*.35));
     }
   });
@@ -1041,7 +1116,11 @@ parts.forEach(p=>{ slotMax[p.stage] = Math.max(slotMax[p.stage] ?? 0, p.slot); }
 const smooth = t => t<=0 ? 0 : t>=1 ? 1 : t*t*(3-2*t);
 
 let progress = N;                 // 0 … N
+const UNFOLD_STAGE = STAGES.findIndex(s=>s.key === 'unfold');
 function applyProgress(){
+  /* stage 2 IS the unfolding: 0 at the end of stage 1, 1 by the end of stage 2.
+     Every later stage is installed on the open house. */
+  setFold(Math.max(0, Math.min(1, progress - UNFOLD_STAGE)));
   parts.forEach(p=>{
     const local = progress - p.stage;                    // <0 not started, >1 done
     const span = 0.62, spread = 0.38;
@@ -1079,6 +1158,7 @@ slider.oninput = ()=> { playing = false; document.getElementById('play').classLi
    ═══════════════════════════════════════════════════════════════════════ */
 const VIEWS = {
   hero:   {pos:[11.8, 2.10, 12.8], tgt:[-0.6, 1.60, 0.4], fov:35},
+  folded: {pos:[7.4, 3.30, 8.6],   tgt:[0.0, 1.25, 0.0],  fov:36},   // the 2 506 transport package
   front:  {pos:[0.5, 1.75, 15.2],  tgt:[0.0, 1.60, 0.0],  fov:34},
   rear:   {pos:[-0.5, 1.75, -15.2], tgt:[0.0, 1.60, 0.0], fov:34},   // mirror of 'front' — proves the two gables match
   side:   {pos:[18.6, 1.70, 0.8],  tgt:[0.0, 1.85, 0.0],  fov:31},
