@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>SMART HOUSE V4 — dimensioned facade (60×120 PU stone panels) &amp; panel installation sequence</title>
+<style>
+  :root{color-scheme:dark}
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:#0a0d12;color:#eaf0f6;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+  body.clean .pane{display:none}
+  body.clean #badge{opacity:.55}
+  #scene{position:fixed;inset:0}
+  .pane{position:fixed;z-index:5;background:rgba(9,12,16,.72);backdrop-filter:blur(16px) saturate(1.15);
+        border:1px solid rgba(255,255,255,.10);border-radius:12px;box-shadow:0 26px 80px rgba(0,0,0,.5)}
+  #ui{top:14px;left:14px;width:344px;padding:14px 15px}
+  #ui h1{font-size:14.5px;margin:0 0 4px;color:#fff;letter-spacing:.2px}
+  #ui .sub{font-size:11.5px;line-height:1.55;color:#93a5b8;margin:0 0 11px}
+  .grp{margin-bottom:6px}
+  button{border:0;border-radius:7px;background:rgba(255,255,255,.075);color:#d9e3ee;padding:6px 9px;margin:0 4px 5px 0;
+         font:12px system-ui,sans-serif;cursor:pointer;transition:background .15s,color .15s}
+  button:hover{background:rgba(255,255,255,.16)}
+  button.on{background:#c8973f;color:#12140f;font-weight:600}
+  input[type=range]{width:100%;accent-color:#c8973f;margin:2px 0 0}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
+  .lbl{font-size:10px;color:#8a9cad;letter-spacing:.5px;text-transform:uppercase}
+  #stageText{font-size:11.5px;line-height:1.55;color:#c6d3df;margin-top:10px;border-top:1px solid rgba(255,255,255,.09);
+             padding-top:9px;min-height:52px}
+  #stageText b{color:#e7b968;font-weight:600}
+  #spec{right:14px;top:14px;width:322px;max-height:calc(100vh - 28px);overflow:auto;padding:13px 15px}
+  #spec h2{font-size:12.5px;margin:0 0 2px;color:#fff;letter-spacing:.2px}
+  #spec h3{font-size:10px;margin:12px 0 3px;color:#c8973f;letter-spacing:.9px;text-transform:uppercase}
+  .metric{display:grid;grid-template-columns:1fr auto;gap:10px;font-size:11px;border-top:1px solid rgba(255,255,255,.07);padding:5px 0}
+  .metric span{color:#93a5b8}
+  .metric b{font-weight:600;color:#fff;white-space:nowrap}
+  #legend{left:14px;bottom:14px;width:344px;padding:11px 14px;font-size:10.8px;line-height:1.75;color:#bac7d4}
+  .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:8px;vertical-align:-1px;border:1px solid rgba(255,255,255,.22)}
+  #badge{position:fixed;right:18px;bottom:15px;z-index:4;font-size:10px;color:#7d8d9f;letter-spacing:.5px}
+  #load{position:fixed;inset:0;z-index:9;display:grid;place-items:center;background:#0a0d12;color:#8a9cad;font-size:12.5px;letter-spacing:.5px}
+  @media (max-width:960px){
+    body{overflow:auto}
+    #scene{position:relative;height:60vh}
+    .pane{position:static;margin:10px 10px 0;width:auto!important;max-height:none;backdrop-filter:none}
+    #badge{position:static;margin:8px 12px 16px}
+  }
+</style>
+</head>
+<body>
+<div id="scene"></div>
+<div id="load">building model…</div>
+
+<div id="ui" class="pane">
+  <h1>SMART HOUSE V4 &mdash; facade &amp; panel installation</h1>
+  <p class="sub">Built to Ivan&rsquo;s dimensioned elevation: 7 449 &times; 6 058 mm, 2 706 mm high, 2 550 mm clear.
+  Glass 837.9 / 819.1 / 798 &times; 2 314. The 60 &times; 120 cm &times; 30 mm PU stone panels are laid <em>over</em> that —
+  three full 1 200 courses to +3 600, so the glazing head sits <b>226 mm above two courses</b> and the third
+  course carries the solar upstand 894 mm clear of the roof.</p>
+
+  <div class="grp" id="stageBtns"></div>
+  <div class="grp">
+    <button data-view="hero" class="on">Hero</button>
+    <button data-view="front">Front</button>
+    <button data-view="side">Side / solar proof</button>
+    <button data-view="roof">Roof</button>
+    <button data-view="detail">Facade detail</button>
+  </div>
+  <div class="grp">
+    <button id="play">▶ Play sequence</button>
+    <button id="orbit">Orbit</button>
+    <button id="dims">Dimensions</button>
+  </div>
+  <div class="row"><span class="lbl">Installation progress</span><span id="pct" class="lbl">100%</span></div>
+  <input id="progress" type="range" min="0" max="1000" step="1" value="1000">
+  <div id="stageText"></div>
+</div>
+
+<div id="spec" class="pane">
+  <h2>Specified dimensions</h2>
+  <p style="font-size:10.5px;line-height:1.5;color:#8a9cad;margin:2px 0 0">
+    Levels are quoted from the underside of the floor, as on Ivan&rsquo;s elevation.</p>
+  <h3>Overall — from the elevation</h3>
+  <div class="metric"><span>Expanded structure</span><b>7 449 &times; 6 058 mm</b></div>
+  <div class="metric"><span>Over external cladding</span><b>7 589 &times; 6 198 mm</b></div>
+  <div class="metric"><span>Construction height</span><b>2 706 mm</b></div>
+  <div class="metric"><span>Clear / glazing height</span><b>2 550 mm</b></div>
+  <div class="metric"><span>Floor / roof sandwich</span><b>76 / 80 mm</b></div>
+  <div class="metric"><span>Wing (&times;2)</span><b>2 731 mm</b></div>
+  <div class="metric"><span>Central solid field</span><b>1 987 mm</b></div>
+  <div class="metric"><span>Facade top</span><b>+3 600 mm</b></div>
+  <div class="metric"><span>Upstand above roof</span><b>894 mm</b></div>
+  <div class="metric"><span>Folded transport width</span><b>2 506 mm</b></div>
+
+  <h3>Facade panel system</h3>
+  <div class="metric"><span>Panel module</span><b>600 w &times; 1 200 h &times; 30 mm</b></div>
+  <div class="metric"><span>Material</span><b>artificial PU white stone</b></div>
+  <div class="metric"><span>Joint</span><b>butt, interlocked</b></div>
+  <div class="metric"><span>Courses</span><b id="mRows">—</b></div>
+  <div class="metric"><span>Gable run</span><b id="mGable">—</b></div>
+  <div class="metric"><span>Long-side run</span><b id="mSide">—</b></div>
+  <div class="metric"><span>Ventilated cavity</span><b>40 mm</b></div>
+  <div class="metric"><span>Build-out per face</span><b>70 mm (40 + 30)</b></div>
+  <div class="metric"><span>Vertical carrier rail</span><b>60 &times; 40 top-hat @ 600</b></div>
+  <div class="metric"><span>Coping cap</span><b>140 &times; 40 mm</b></div>
+  <div class="metric"><span>Panel count</span><b id="mPanels">—</b></div>
+
+  <h3>Openings — gable facade</h3>
+  <div class="metric"><span>Glazing head / sill</span><b>+2 626 / +76 mm</b></div>
+  <div class="metric"><span>Head above 2 courses</span><b id="mHeadOver">—</b></div>
+  <div class="metric"><span>Outer VIG lite</span><b>837.9 &times; 2 550 mm</b></div>
+  <div class="metric"><span>Inner VIG lite</span><b>819.1 &times; 2 550 mm</b></div>
+  <div class="metric"><span>Door glass</span><b>798 &times; 2 314 mm</b></div>
+  <div class="metric"><span>Door assembly</span><b>994 &times; 2 550 mm</b></div>
+  <div class="metric"><span>Wing setting-out</span><b>45·837.9·35·819.1·98·798·98</b></div>
+  <div class="metric"><span>Wing total</span><b>2 731 mm exactly</b></div>
+  <div class="metric"><span>Mullion / corner jamb</span><b>35 / 45 mm</b></div>
+  <div class="metric"><span>VIG glass</span><b>12.4 mm frameless</b></div>
+  <div class="metric"><span>Frame face</span><b>50 mm bronze anodised</b></div>
+  <div class="metric"><span>Glazing set back</span><b>70 mm behind cladding</b></div>
+  <div class="metric"><span>Long side walls</span><b>no openings</b></div>
+
+  <h3>Timber feature panel</h3>
+  <div class="metric"><span>Panel field</span><b id="mSlatW">—</b></div>
+  <div class="metric"><span>Slat section</span><b>48 &times; 20 mm larch</b></div>
+  <div class="metric"><span>Slat pitch / count</span><b id="mSlatN">—</b></div>
+
+  <h3>Construction</h3>
+  <div class="metric"><span>Wall / floor sandwich</span><b>76 mm (3+70+3)</b></div>
+  <div class="metric"><span>Field profile</span><b>70 &times; 35 &times; 4 FRP</b></div>
+  <div class="metric"><span>Corner column</span><b>70 &times; 70 (2 &times; 70&times;35)</b></div>
+  <div class="metric"><span>Wall / roof stud pitch</span><b>600 mm</b></div>
+  <div class="metric"><span>Floor joist pitch</span><b>400 mm</b></div>
+  <div class="metric"><span>Insulation</span><b>soft glass wool, loose</b></div>
+
+  <h3>Hidden solar field</h3>
+  <div class="metric"><span>Array</span><b>12 &times; 1 722 &times; 1 134 mm</b></div>
+  <div class="metric"><span>Tilt / rail</span><b>8&deg; on 100 mm rail</b></div>
+  <div class="metric"><span>Highest point</span><b id="mSolTop">—</b></div>
+  <div class="metric"><span>Concealment margin</span><b id="mSolHide">—</b></div>
+  <div class="metric"><span>Nominal output</span><b>≈ 4.8 kWp</b></div>
+</div>
+
+<div id="legend" class="pane">
+  <span class="sw" style="background:#5c6a72"></span>FRP structure — 70&times;35&times;4 profiles, 70&times;70 columns<br>
+  <span class="sw" style="background:#c9c6bd"></span>FRP sandwich shell — 3 mm skins + 70 mm frame<br>
+  <span class="sw" style="background:#8e8272"></span>Cladding sub-frame — brackets + 60&times;40 rails<br>
+  <span class="sw" style="background:#efece4"></span>60 &times; 120 cm &times; 30 mm artificial PU white-stone panel<br>
+  <span class="sw" style="background:#b98a4e"></span>Larch slat feature panel over the 1 987 core<br>
+  <span class="sw" style="background:#7d5f38"></span>Bronze anodised door / window frames<br>
+  <span class="sw" style="background:#9fc3d6"></span>12.4 mm frameless VIG glazing<br>
+  <span class="sw" style="background:#1c2733"></span>Solar field hidden behind the +3 600 upstand
+</div>
+<div id="badge">SMART HOUSE V4 · expandable-houses · 2026-08-14</div>
+
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+"three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+/* ═══════════════════════════════════════════════════════════════════════
+   1. DIMENSION SCHEDULE — every value in millimetres, single source of truth
+   ═══════════════════════════════════════════════════════════════════════ */
+const D = {
+  /* ── envelope, read straight off Ivan's dimensioned elevation (cm → mm) ───── */
+  W: 7449,            // 744.90  expanded structural width, across the fold
+  L: 6058,            // 605.80  structural length
+  wing: 2731,         // 273.10  measured on the drawing from the inner face of the corner
+                      //         jamb (= edge of the outer lite) to the outer edge of the
+                      //         door frame — verified against the drawing's own dim lines
+  core: 1987,         // 7 449 − 2 × 273.10 group = 198.70 — the central solid (larch) field, straight off the drawing
+  foldedW: 2506,
+  clear: 2550,        // 255.00  clear height, FFL → ceiling.  All glazing is this tall.
+  overall: 2706,      // 270.60  total construction height, floor underside → roof top
+  panelThk: 76,       // wall / floor sandwich: 3 + 70 + 3
+  roofThk: 80,        // roof sandwich + fall/membrane  (76 + 2 550 + 80 = 2 706)
+  ffl: 76,            // FFL above the underside of the floor — the drawing's datum
+  roofFin: 2630,      // finished roof surface, FFL datum   (2 550 + 80)
+  plinth: 200,        // FFL above grade
+
+  // structure
+  prof: {h:70, w:35, t:4},
+  col: 70,
+  studPitch: 600,
+  joistPitch: 400,
+
+  /* ── facade: 60 × 120 cm artificial PU white-stone panel, 30 mm thick.
+        Butt-jointed (interlocking PU edges) — no open joint. ───────────────── */
+  pnlW: 600, pnlH: 1200, pnlThk: 30, joint: 0,
+  pitchH: 600, pitchV: 1200,
+  cavity: 40, rail: {w:60, d:40},
+  rowBase: -76,       // course 1 starts at the underside of the floor = drawing ±0
+  parapet: 3524,      // −76 + 3 × 1 200  →  +3 600 on the drawing datum.
+                      // Three FULL courses. The upstand rises 894 mm above the roof;
+                      // nothing in the construction is resized to suit the module.
+  coping: {w:140, t:40},
+  minCloserGable: 150,
+  minCloserSide: 150,
+
+  /* ── openings, both gable ends identical. Widths are GLASS widths as dimensioned;
+        the numbers between them are the real frame members. ──────────────────── */
+  glazH: 2550,        // glazed openings run the full 255.00 clear height
+  jamb: 45,           // corner casing at the gable edge — the FIRST member inside the 273.10 group
+  lite1: 837.9,       // 83.79  outer VIG lite — full 2 550 of frameless glass
+  beam: 35,           // FRP mullion between the two lites
+  lite2: 819.1,       // 81.91  inner VIG lite — full 2 550 of frameless glass
+  doorJamb: 98,       // door stile — group frames 45 + 35 + 98 + 98 = 276 = 273.10 − (837.9+819.1+798)
+  door: 798,          // 79.80  door glass width
+  doorGlazH: 2314,    // 231.40 door glass height
+  doorHead: 118,      // door head    (118 + 2 314 + 118 = 2 550)
+  doorRail: 118,      // bottom rail / threshold
+  mull: 70,
+  vig: 12.4,
+  frameFace: 50,
+  reveal: 70,         // glazing face sits 70 mm behind the cladding face (40 + 30)
+  frameDepth: 60,
+
+  // timber feature panel — the full 1 987 mm core field
+  slat: {w:48, d:20, target:60.4},
+
+  // solar
+  sol: {w:1722, d:1134, t:40, rail:100, tilt:8, cols:4, rows:3}
+};
+const M = v => v/1000;                       // mm → metres
+const B = v => Math.round(v + D.ffl);        // FFL datum → drawing datum (floor underside)
+const HW = M(D.W)/2, HL = M(D.L)/2;          // structural half-extents
+const OUT = D.cavity + D.pnlThk;             // 70 mm cladding build-out per face
+const CLADX = HW + M(OUT);                   // cladding outer face, X
+const CLADZ = HL + M(OUT);                   // cladding outer face, Z
+const GABLE_W = D.W + 2*OUT;                 // 7 589 over cladding
+const SIDE_W  = D.L + 2*OUT;                 // 6 198 over cladding
+
+/* ── panel setting-out: whole 600 modules centred on each face, butt-jointed,
+      with equal cut closers at both corners ──────────────────────────────── */
+function runLayout(total, minCloser){
+  let n = Math.floor(total / D.pnlW), closer;
+  while(n > 1){
+    closer = (total - n*D.pnlW)/2;
+    if(closer >= minCloser) break;
+    n--;
+  }
+  const out = []; let x = -total/2;
+  out.push({c:x + closer/2, w:closer, closer:true});
+  x += closer;
+  for(let i=0;i<n;i++){ out.push({c:x + D.pnlW/2, w:D.pnlW, closer:false}); x += D.pnlW; }
+  out.push({c:x + closer/2, w:closer, closer:true});
+  return out;
+}
+const gableRun = runLayout(GABLE_W, D.minCloserGable);
+const sideRun  = runLayout(SIDE_W,  D.minCloserSide);
+
+/* ── vertical courses: three FULL 1 200 panels off the floor underside.
+      The construction top (+2 706) falls inside course 3; the rest of that
+      course is the upstand that hides the solar. ─────────────────────────── */
+const ROWS = [];
+for(let y = D.rowBase; y < D.parapet - 1; y += D.pnlH){
+  ROWS.push({y0:y, h:Math.min(D.pnlH, D.parapet - y)});
+}
+
+/* ── gable setting-out, element by element, straight off the drawing:
+      45 jamb · 837.9 · 35 mullion · 819.1 · 98 · 798 door · 98 = 2 731 group (= the 273.10 dim)
+      2 × 2 731 + 1 987 core = 7 449.  Straight off the drawing; nothing rounded to suit the panels. ── */
+const WING = D.jamb + D.lite1 + D.beam + D.lite2 + 2*D.doorJamb + D.door;   // 2 731 — the 273.10 group
+const SLATW = D.core;                                              // 1 987
+D.slat.n = Math.max(4, Math.round(SLATW / D.slat.target));
+D.slat.pitch = SLATW / D.slat.n;
+
+const GSEQ = [];
+(function(){
+  const wing = [[D.jamb,'jamb'], [D.lite1,'lite'], [D.beam,'beam'], [D.lite2,'lite'],
+                [D.doorJamb,'dstile'], [D.door,'door'], [D.doorJamb,'dstile']];
+  const seq = [...wing, [SLATW,'slat'], ...wing.slice().reverse()];
+  let x = -D.W/2;
+  seq.forEach(([w,t])=>{ GSEQ.push({x0:x, x1:x+w, type:t}); x += w; });
+})();
+
+/* highest point of the tilted solar array, and its clearance below the parapet */
+const SOLAR_TOP = Math.round(D.roofFin + D.sol.rail + 30
+                  + D.sol.d*Math.sin(D.sol.tilt*Math.PI/180) + D.sol.t/2);
+const SOLAR_HIDE = D.parapet - SOLAR_TOP;
+const HEAD_OVER = D.glazH - (D.rowBase + 2*D.pnlH);   // how far the glazing head clears
+                                                      // two panel courses: 226 mm
+
+/* ═══════════════════════════════════════════════════════════════════════
+   2. RENDERER / SCENE / SKY
+   ═══════════════════════════════════════════════════════════════════════ */
+const host = document.getElementById('scene');
+const CAPTURE = new URLSearchParams(location.search).get('capture') === '1';
+const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance',
+                                          preserveDrawingBuffer:CAPTURE});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(host.clientWidth, host.clientHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.86;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+host.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, host.clientWidth/host.clientHeight, 0.1, 400);
+
+// procedural late-afternoon sky, used as both background and environment
+function skyTexture(){
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 512;
+  const g = c.getContext('2d');
+  const grd = g.createLinearGradient(0,0,0,512);
+  grd.addColorStop(0.00, '#4d81c4');
+  grd.addColorStop(0.34, '#8db6dd');
+  grd.addColorStop(0.49, '#cfdcea');
+  grd.addColorStop(0.505,'#d8cdb6');
+  grd.addColorStop(0.70, '#b6a488');
+  grd.addColorStop(1.00, '#8d7f68');
+  g.fillStyle = grd; g.fillRect(0,0,1024,512);
+  // soft cloud banding
+  g.globalAlpha = .16; g.fillStyle = '#ffffff';
+  for(let i=0;i<70;i++){
+    const x = Math.random()*1024, y = 40 + Math.random()*180;
+    const w = 60 + Math.random()*190, h = 8 + Math.random()*20;
+    g.beginPath(); g.ellipse(x,y,w,h,0,0,Math.PI*2); g.fill();
+  }
+  g.globalAlpha = 1;
+  const t = new THREE.CanvasTexture(c);
+  t.mapping = THREE.EquirectangularReflectionMapping;
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const sky = skyTexture();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromEquirectangular(sky).texture;
+scene.background = sky;
+scene.fog = new THREE.Fog(0xcbd3da, 110, 320);
+
+const sun = new THREE.DirectionalLight(0xffedd0, 3.6);
+sun.position.set(-15, 9.5, 16);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.near = 1; sun.shadow.camera.far = 70;
+sun.shadow.camera.left = -18; sun.shadow.camera.right = 18;
+sun.shadow.camera.top = 16; sun.shadow.camera.bottom = -12;
+sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.02;
+scene.add(sun);
+scene.add(new THREE.HemisphereLight(0xafcdf0, 0xb3a184, 0.42));
+const bounce = new THREE.DirectionalLight(0xffe4c2, 0.30); bounce.position.set(13, 2.5, -11); scene.add(bounce);
+const interiorLight = new THREE.PointLight(0xffd39a, 9, 13, 2); interiorLight.position.set(0, 1.9, -0.9); scene.add(interiorLight);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.06;
+controls.minDistance = 4; controls.maxDistance = 70;
+controls.maxPolarAngle = Math.PI/2 - 0.012;
+controls.target.set(0, 1.35, 0);
+
+/* ═══════════════════════════════════════════════════════════════════════
+   3. MATERIALS
+   ═══════════════════════════════════════════════════════════════════════ */
+const mat = {
+  frp:     new THREE.MeshStandardMaterial({color:0x5c6a72, roughness:.62, metalness:.06}),
+  frpCol:  new THREE.MeshStandardMaterial({color:0x4a555c, roughness:.58, metalness:.08}),
+  shell:   new THREE.MeshStandardMaterial({color:0xc9c6bd, roughness:.85, metalness:.0}),
+  shellIn: new THREE.MeshStandardMaterial({color:0xe8e4dc, roughness:.9,  metalness:.0, side:THREE.DoubleSide}),
+  sub:     new THREE.MeshStandardMaterial({color:0x8e8272, roughness:.7,  metalness:.15}),
+  memb:    new THREE.MeshStandardMaterial({color:0x111417, roughness:1, metalness:.0}),
+  bracket: new THREE.MeshStandardMaterial({color:0x76808a, roughness:.5,  metalness:.55}),
+  stone:   new THREE.MeshStandardMaterial({color:0xeae5da, roughness:.8,  metalness:.0}),
+  coping:  new THREE.MeshStandardMaterial({color:0xdfd9cc, roughness:.55, metalness:.08}),
+  wood:    new THREE.MeshStandardMaterial({color:0xc99a58, roughness:.52, metalness:.0}),
+  woodBack:new THREE.MeshStandardMaterial({color:0x241d15, roughness:.95, metalness:.0}),
+  bronze:  new THREE.MeshStandardMaterial({color:0x8a6435, roughness:.42, metalness:.55}),
+  casing:  new THREE.MeshStandardMaterial({color:0x8d8398, roughness:.6,  metalness:.1}),
+  glass:   new THREE.MeshPhysicalMaterial({color:0x86a0ad, roughness:.02, metalness:.15, transparent:true,
+             opacity:.42, envMapIntensity:2.6, clearcoat:1, clearcoatRoughness:.02, side:THREE.DoubleSide}),
+  curtain: new THREE.MeshStandardMaterial({color:0xefe3cd, roughness:.95, transparent:true, opacity:.62, side:THREE.DoubleSide}),
+  solar:   new THREE.MeshStandardMaterial({color:0x1c2733, roughness:.28, metalness:.55}),
+  solarFr: new THREE.MeshStandardMaterial({color:0xb9bcc0, roughness:.4,  metalness:.8}),
+  roofMem: new THREE.MeshStandardMaterial({color:0xb4b1a8, roughness:.95}),
+  paving:  new THREE.MeshStandardMaterial({color:0xcfc3ac, roughness:.92}),
+  gravel:  new THREE.MeshStandardMaterial({color:0xb0a288, roughness:1}),
+  soil:    new THREE.MeshStandardMaterial({color:0x9a8d74, roughness:1}),
+  leaf:    new THREE.MeshStandardMaterial({color:0x5f6b41, roughness:.95}),
+  olive:   new THREE.MeshStandardMaterial({color:0x77855c, roughness:.95}),
+  trunk:   new THREE.MeshStandardMaterial({color:0x7a6c58, roughness:.95}),
+  lav:     new THREE.MeshStandardMaterial({color:0x8f86bc, roughness:.95}),
+  grass:   new THREE.MeshStandardMaterial({color:0xc3b483, roughness:1}),
+  furn:    new THREE.MeshStandardMaterial({color:0xd8cfc0, roughness:.85}),
+  furnDk:  new THREE.MeshStandardMaterial({color:0x7d6a52, roughness:.8})
+};
+
+/* box helper — dimensions in mm, position in metres (centre) */
+const BOX = new THREE.BoxGeometry(1,1,1);
+function box(wmm, hmm, dmm, material, x, y, z){
+  const m = new THREE.Mesh(BOX, material);
+  m.scale.set(Math.max(M(wmm),1e-5), Math.max(M(hmm),1e-5), Math.max(M(dmm),1e-5));
+  m.position.set(x, y, z);
+  m.castShadow = true; m.receiveShadow = true;
+  return m;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   4. INSTALL-SEQUENCE ENGINE
+   Every part registers with a stage and an order index; the global progress
+   value slides parts in from an offset so the build reads as an assembly.
+   ═══════════════════════════════════════════════════════════════════════ */
+const STAGES = [
+  {key:'frame',  name:'1 · FRP structure',
+   text:'<b>Step 1 — structural frame.</b> 70×35×4 FRP profiles: floor joists at 400 mm, wall studs and roof joists at 600 mm, 70×70 built-up corner columns. The expanded skeleton is 7 449 × 6 058 mm with a 2 550 mm clear height.'},
+  {key:'shell',  name:'2 · Sandwich shell',
+   text:'<b>Step 2 — sandwich panels.</b> 3 mm FRP skins bonded and screwed both faces over the 70 mm profile grid, soft glass wool loose in the cavity. Floor and wall panels are 76 mm, the roof 80 mm — 76 + 2 550 + 80 = the 2 706 mm on the drawing. Both gable ends are left fully open: they are glazed corner to corner.'},
+  {key:'casing', name:'3 · Openings &amp; frames',
+   text:'<b>Step 3 — opening frames.</b> The gable carcass, element by element: 45 mm corner jamb, 35 mm FRP mullion between the two lites, and the 98 mm door stiles. Every member runs the full 2 550 mm clear height — the openings are set by the construction, not by the panel grid.'},
+  {key:'glaz',   name:'4 · Windows &amp; doors',
+   text:'<b>Step 4 — glazing, at the dimensioned sizes.</b> Per wing: 837.9 and 819.1 mm frameless VIG lites, each carrying the full 2 550 mm of glass floor to ceiling, and a 798 × 2 314 mm door glass with a 118 mm head and a 118 mm bottom rail. Group = 45 · 837.9 · 35 · 819.1 · 98 · 798 · 98 = 2 731 mm — the drawing’s 273.10. Two groups + the core: 2 × 2 731 + 1 987 = 7 449. The glazing head lands at +2 626 — <b>226 mm ABOVE two panel courses</b>, which is the whole point of this revision.'},
+  {key:'sub',    name:'5 · Cladding sub-frame',
+   text:'<b>Step 5 — carrier system.</b> Stainless L-brackets on the profile lines, then 60 × 40 mm vertical top-hat rails at 600 mm centres. The 40 mm cavity plus the 30 mm panel gives a 70 mm build-out per face, so the glazing sits in a 70 mm reveal.'},
+  {key:'clad',   name:'6 · 60 × 120 PU panels',
+   text:'<b>Step 6 — facade panels, course by course.</b> 600 wide × 1 200 high × 30 mm artificial PU white-stone panels, butt-jointed, set out from the underside of the floor. Three FULL courses: ±0 → 1 200 → 2 400 → 3 600. The construction top (+2 706) falls inside course 3, so 894 mm of that course stands above the roof as the solar upstand. On the gable ends the panels stop at the +2 626 glazing head and are cut there — the openings keep their true 2 550 mm height.'},
+  {key:'slat',   name:'7 · Timber panel',
+   text:'<b>Step 7 — larch feature panel.</b> Vertical 48 × 20 mm slats at ≈60 mm pitch across the full 1 987 × 2 550 mm central field, on a black ventilated backing.'},
+  {key:'solar',  name:'8 · Coping &amp; solar',
+   text:'<b>Step 8 — coping and hidden solar.</b> 140 × 40 mm coping cap, then 12 modules of 1 722 × 1 134 mm at 8° on 100 mm rails. Highest point +3 014 mm — 586 mm below the +3 600 upstand, so nothing is visible from the ground on any side.'},
+  {key:'site',   name:'9 · Finished outlook',
+   text:'<b>Step 9 — finished outlook.</b> Travertine terrace, gravel bed, lavender, ornamental grasses and olive trees. Late-afternoon sun, matching the reference photograph.'}
+];
+
+const parts = [];   // {mesh, stage, slot, from}
+const groups = {};
+STAGES.forEach((s,i)=>{ groups[s.key] = new THREE.Group(); scene.add(groups[s.key]); s.index = i; });
+
+function add(mesh, stageKey, slot = 0, fromVec = null){
+  groups[stageKey].add(mesh);
+  parts.push({mesh, stage:STAGES.findIndex(s=>s.key===stageKey), slot,
+              home:mesh.position.clone(), from:fromVec});
+  return mesh;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   5. STAGE 1 — FRP STRUCTURE
+   ═══════════════════════════════════════════════════════════════════════ */
+(function structure(){
+  const yF = M(-D.plinth/2);                       // base frame band, below FFL
+  const P = D.prof;
+
+  // base perimeter + lifting frame
+  add(box(D.W, D.col, D.col, mat.frpCol, 0, M(-D.panelThk/2), HL - M(D.col/2)), 'frame', 0);
+  add(box(D.W, D.col, D.col, mat.frpCol, 0, M(-D.panelThk/2), -HL + M(D.col/2)), 'frame', 0);
+  add(box(D.col, D.col, D.L, mat.frpCol, HW - M(D.col/2), M(-D.panelThk/2), 0), 'frame', 0);
+  add(box(D.col, D.col, D.L, mat.frpCol, -HW + M(D.col/2), M(-D.panelThk/2), 0), 'frame', 0);
+
+  // floor joists @400 running across the width
+  const nJ = Math.floor(D.L/D.joistPitch);
+  for(let i=1;i<nJ;i++){
+    const z = -HL + M(i*D.joistPitch);
+    add(box(D.W - 2*D.col, P.w, P.h, mat.frp, 0, M(-D.panelThk/2), z), 'frame', 1);
+  }
+  // floor cross-blocking at thirds
+  [-1,1].forEach(s=> add(box(P.h, P.w, D.L*0.98, mat.frp, s*M(D.W/6), M(-D.panelThk/2), 0), 'frame', 1));
+
+  // corner columns 70×70
+  [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([sx,sz])=>{
+    add(box(D.col, D.clear, D.col, mat.frpCol,
+            sx*(HW - M(D.col/2)), M(D.clear/2), sz*(HL - M(D.col/2))), 'frame', 2);
+  });
+
+  // wall studs @600 — long sides
+  const nS = Math.round(D.L/D.studPitch);
+  for(let i=1;i<nS;i++){
+    const z = -HL + M(i*D.L/nS);
+    [1,-1].forEach(sx=> add(box(P.w, D.clear, P.h, mat.frp, sx*(HW - M(P.w/2)), M(D.clear/2), z), 'frame', 3));
+  }
+  // wall studs @600 — gable ends
+  const nG = Math.round(D.W/D.studPitch);
+  for(let i=1;i<nG;i++){
+    const x = -HW + M(i*D.W/nG);
+    [1,-1].forEach(sz=> add(box(P.h, D.clear, P.w, mat.frp, x, M(D.clear/2), sz*(HL - M(P.w/2))), 'frame', 3));
+  }
+  // head + sill rails on all four walls
+  [M(D.clear) - M(P.w/2), M(P.w/2)].forEach(y=>{
+    add(box(D.W, P.w, P.h, mat.frp, 0, y, HL - M(P.h/2)), 'frame', 4);
+    add(box(D.W, P.w, P.h, mat.frp, 0, y, -HL + M(P.h/2)), 'frame', 4);
+    [1,-1].forEach(sx=> add(box(P.h, P.w, D.L, mat.frp, sx*(HW - M(P.h/2)), y, 0), 'frame', 4));
+  });
+
+  // roof joists @600 across the width + the full-length closing beams (step-4 beams)
+  const nR = Math.round(D.L/D.studPitch);
+  for(let i=1;i<nR;i++){
+    const z = -HL + M(i*D.L/nR);
+    add(box(D.W, P.h, P.w, mat.frp, 0, M(D.clear + P.h/2), z), 'frame', 5);
+  }
+  [1,-1].forEach(sx=> add(box(P.w, P.h, D.L, mat.frpCol, sx*(HW - M(P.w/2)), M(D.clear + P.h/2), 0), 'frame', 5));
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════
+   6. STAGE 2 — SANDWICH SHELL  (walls / floor / roof, openings omitted)
+   ═══════════════════════════════════════════════════════════════════════ */
+(function shell(){
+  const t = D.panelThk;
+  // floor
+  add(box(D.W, t, D.L, mat.shell, 0, M(-t/2), 0), 'shell', 0, new THREE.Vector3(0,-1.6,0));
+  // interior finished floor
+  const fl = new THREE.Mesh(new THREE.PlaneGeometry(M(D.W)-.16, M(D.L)-.16), mat.furnDk);
+  fl.rotation.x = -Math.PI/2; fl.position.y = 0.002; fl.receiveShadow = true;
+  add(fl, 'shell', 0, new THREE.Vector3(0,-1.6,0));
+
+  // long side walls — solid, no openings
+  [1,-1].forEach(sx=>{
+    add(box(t, D.clear, D.L, mat.shell, sx*(HW - M(t/2)), M(D.clear/2), 0), 'shell', 1,
+        new THREE.Vector3(sx*2.4, 0, 0));
+  });
+
+  // gable ends — glazed post to post over the full 2 550 clear height, so the only
+  // solid part is the 1 987 core carrying the larch panel
+  const sf = GSEQ.find(s=>s.type==='slat');
+  [1,-1].forEach(sz=>{
+    add(box(sf.x1-sf.x0, D.clear, t, mat.woodBack, M((sf.x0+sf.x1)/2), M(D.clear/2), sz*(HL - M(t/2))), 'shell', 2,
+        new THREE.Vector3(0,0,sz*2.4));
+  });
+
+  // roof deck + upstand walls carrying the parapet cladding
+  add(box(D.W, D.roofThk, D.L, mat.shell, 0, M(D.clear + D.roofThk/2), 0), 'shell', 3, new THREE.Vector3(0,2.2,0));
+  const memb = new THREE.Mesh(new THREE.PlaneGeometry(M(D.W)-.02, M(D.L)-.02), mat.roofMem);
+  memb.rotation.x = -Math.PI/2; memb.position.y = M(D.roofFin); memb.receiveShadow = true;
+  add(memb, 'shell', 3, new THREE.Vector3(0,2.2,0));
+
+  // parapet upstand: structural continuation from roof level to +3000 behind the cladding
+  const upH = D.parapet - D.roofFin;
+  add(box(D.W, upH, t, mat.shell, 0, M(D.roofFin + upH/2), HL - M(t/2)), 'shell', 4, new THREE.Vector3(0,1.2,0));
+  add(box(D.W, upH, t, mat.shell, 0, M(D.roofFin + upH/2), -HL + M(t/2)), 'shell', 4, new THREE.Vector3(0,1.2,0));
+  [1,-1].forEach(sx=> add(box(t, upH, D.L, mat.shell, sx*(HW - M(t/2)), M(D.roofFin + upH/2), 0), 'shell', 4,
+                          new THREE.Vector3(0,1.2,0)));
+
+  // interior furniture, visible through the glazing
+  const g = new THREE.Group();
+  g.add(box(2200, 720, 900, mat.furn, -1.1, .36, -1.4));
+  g.add(box(2000, 900, 620, mat.furnDk, 1.4, .45, -2.2));
+  g.add(box(1600, 340, 800, mat.furn, .3, .17, 1.1));
+  for(let i=0;i<4;i++) g.add(box(420, 820, 420, mat.furnDk, -1.9 + i*.55, .41, -.6));
+  g.children.forEach(c=>{c.castShadow=false;c.receiveShadow=false;});
+  add(g, 'shell', 5);
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════
+   7. STAGE 3 + 4 — CASINGS, FRAMES, VIG GLAZING, DOORS
+   ═══════════════════════════════════════════════════════════════════════ */
+(function openings(){
+  const zFace = HL - M(D.frameDepth/2);    // frame centre; outer face flush with the wall,
+                                           // i.e. D.reveal (70 mm) behind the cladding face
+  const H = D.glazH;                       // 2 550 — the full clear height
+
+  [1,-1].forEach(sz=>{
+    const z  = sz*zFace;
+    const zc = z - sz*M(28);               // FRP carcass recessed behind the bronze
+    const off = new THREE.Vector3(0, 0, sz*.7), offG = new THREE.Vector3(0, 0, sz*.5);
+
+    GSEQ.forEach((s, si)=>{
+      const w = s.x1 - s.x0, cx = M((s.x0+s.x1)/2);
+      if(s.type === 'slat') return;
+
+      // ── stage 3: the frame carcass — corner jambs, the 35 mm mullion, door stiles
+      if(s.type === 'jamb'){
+        add(box(D.jamb, H, D.prof.h, mat.casing, cx, M(H/2), zc), 'casing', si, off);
+        return;
+      }
+      if(s.type === 'beam'){
+        add(box(D.beam, H, D.prof.h, mat.casing, cx, M(H/2), zc), 'casing', si, off);
+        return;
+      }
+      if(s.type === 'dstile'){
+        add(box(D.doorJamb, H, D.frameDepth, mat.bronze, cx, M(H/2), z), 'casing', si, off);
+        return;
+      }
+
+      // ── stage 4: the glazing itself, at the dimensioned sizes
+      if(s.type === 'lite'){
+        // frameless VIG, floor to ceiling — the drawing shows no head or sill member
+        const pane = box(w, H, D.vig, mat.glass, cx, M(H/2), z);
+        pane.castShadow = false;
+        add(pane, 'glaz', si, offG);
+        // sheer curtain behind the outermost lite of each wing, as the reference photo
+        if(Math.abs(s.x0 + s.x1)/2 > D.W/2 - D.jamb - D.lite1 - 40){
+          const cu = box(w - 60, H - 260, 8, mat.curtain, cx, M(H/2 - 60), z - sz*M(140));
+          cu.castShadow = false; add(cu, 'glaz', si, offG);
+        }
+        return;
+      }
+
+      if(s.type === 'door'){
+        // 118 head · 2 314 glass · 118 bottom rail = 2 550
+        add(box(w, D.doorHead, D.frameDepth, mat.bronze, cx, M(H - D.doorHead/2), z), 'glaz', si, offG);
+        add(box(w, D.doorRail, D.frameDepth, mat.bronze, cx, M(D.doorRail/2), z), 'glaz', si, offG);
+        const pane = box(w, D.doorGlazH, D.vig, mat.glass, cx, M(D.doorRail + D.doorGlazH/2), z);
+        pane.castShadow = false;
+        add(pane, 'glaz', si, offG);
+        const h = box(26, 300, 26, mat.bronze, cx + M(w/2 - 90), M(1080), z + sz*M(40));
+        add(h, 'glaz', si, offG);
+      }
+    });
+  });
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════
+   8. STAGE 5 — CLADDING SUB-FRAME   |   STAGE 6 — 600×600 PANELS
+   ═══════════════════════════════════════════════════════════════════════ */
+let panelCount = 0, cutCount = 0;
+(function cladding(){
+  const glazTop = D.glazH, faces = [];
+  // faces: {axis, sign, run, half}
+  faces.push({axis:'z', sign: 1, run: gableRun, out: CLADZ, gable:true});
+  faces.push({axis:'z', sign:-1, run: gableRun, out: CLADZ, gable:true});
+  faces.push({axis:'x', sign: 1, run: sideRun,  out: CLADX, gable:false});
+  faces.push({axis:'x', sign:-1, run: sideRun,  out: CLADX, gable:false});
+
+  faces.forEach((f, fi)=>{
+    const outPos = f.sign * f.out;
+    // ── sub-frame: breather membrane, brackets and vertical rails, only where panels land
+    const facePos = f.sign * (f.axis==='z' ? HL : HW);
+    const railPos = facePos + f.sign*M(D.cavity/2);
+    const membPos = facePos + f.sign*M(2/1000);
+    const g = (a,b)=> f.axis==='z' ? [a, b] : [b, a];
+    const offV = new THREE.Vector3(f.axis==='z'?0:f.sign*.5, 0, f.axis==='z'?f.sign*.5:0);
+
+    // dark ventilated-cavity membrane behind the panels
+    const mFull = [D.rowBase, D.parapet], mTop = [D.glazH, D.parapet];
+    // the gable is glazed post-to-post over the full 2 550 clear height, so it is
+    // only clad above the glazing head
+    (f.gable ? [{x0:-GABLE_W/2, x1: GABLE_W/2, r:mTop}]
+             : [{x0:-SIDE_W/2, x1: SIDE_W/2, r:mFull}]).forEach((sec,si)=>{
+      const h = sec.r[1] - sec.r[0], w = sec.x1 - sec.x0;
+      const [mx, mz] = g(M((sec.x0+sec.x1)/2), membPos);
+      add(box(...(f.axis==='z' ? [w, h, 3] : [3, h, w]), mat.memb, mx, M((sec.r[0]+sec.r[1])/2), mz),
+          'sub', si, offV);
+    });
+
+    f.run.forEach((p, pi)=>{
+      const railX = M(p.c);
+      const rw = Math.min(D.rail.w, p.w - 10);
+      // on the gable ends the rails only exist above the glazing head
+      const y0 = f.gable ? D.glazH : D.rowBase;
+      const hgt = D.parapet - y0;
+      const [px, pz] = g(railX, railPos);
+      add(box(...(f.axis==='z' ? [rw, hgt, D.cavity] : [D.cavity, hgt, rw]),
+              mat.sub, px, M(y0 + hgt/2), pz), 'sub', pi, offV);
+      for(let by = y0 + 300; by < D.parapet; by += 1200){
+        const [bx, bz] = g(railX, railPos);
+        add(box(...(f.axis==='z'?[110,60,D.cavity+20]:[D.cavity+20,60,110]), mat.bracket, bx, M(by), bz),
+            'sub', pi, offV);
+      }
+    });
+
+    // ── panels, installed bottom course first, left to right
+    const off = new THREE.Vector3(f.axis==='z'?0:f.sign*.45, 0, f.axis==='z'?f.sign*.45:0);
+    ROWS.forEach((row, r)=>{
+      f.run.forEach((p, pi)=>{
+        // on the gable the panels stop at the glazing head; where a course straddles
+        // the head the panel is CUT — the opening keeps its true 2 550 height
+        let y0 = row.y0, h = row.h;
+        if(f.gable){
+          if(y0 + h <= glazTop + 1) return;      // wholly below the head → no panel
+          if(y0 < glazTop){ h -= (glazTop - y0); y0 = glazTop; cutCount++; }
+        }
+        const cx = M(p.c), cy = M(y0 + h/2);
+        // panels butt; the face is drawn 3 mm short all round so the module reads
+        const fw = p.w - 3, fh = h - 3;
+        const dims = f.axis==='z' ? [fw, fh, D.pnlThk] : [D.pnlThk, fh, fw];
+        const px = f.axis==='z' ? cx : outPos - f.sign*M(D.pnlThk/2);
+        const pz = f.axis==='z' ? outPos - f.sign*M(D.pnlThk/2) : cx;
+        const m = box(...dims, mat.stone.clone(), px, cy, pz);
+        // subtle stone tone variation, panel to panel
+        const v = (Math.sin(pi*12.9898 + r*78.233 + fi*3.1) * 43758.5453) % 1;
+        m.material.color.offsetHSL(0, 0, (Math.abs(v)-.5)*0.028);
+        add(m, 'clad', r*40 + pi, off);
+        panelCount++;
+      });
+    });
+
+    // ── corner returns: the 30 mm panel turns the corner and closes the 70 mm
+    //    build-out. On the gable ends that return is the only cladding below the
+    //    glazing head, and it is what reads as the white edge of the frame.
+    if(f.gable){
+      const rw = OUT - D.pnlThk;                        // the side panel wraps the outer 30
+      [1,-1].forEach(sx=>{
+        ROWS.forEach((row, r)=>{
+          if(row.y0 >= glazTop) return;                 // above the head the run covers it
+          const h = Math.min(row.h, glazTop - row.y0);
+          const m = box(rw, h - 3, D.pnlThk, mat.stone, sx*(HW + M(rw/2)),
+                        M(row.y0 + h/2), outPos - f.sign*M(D.pnlThk/2));
+          add(m, 'clad', r*40, off);
+          panelCount++;
+        });
+      });
+      // head flashing: closes the 40 mm cavity over the glazing and carries course 3
+      add(box(GABLE_W, 15, D.cavity, mat.coping, 0, M(glazTop - 7.5),
+              f.sign*(HL + M(D.cavity/2))), 'clad', 3, off);
+    }
+    // base drip closing the cavity at the foot of the cladding
+    const bd = f.axis==='z' ? [GABLE_W, 15, D.cavity] : [D.cavity, 15, SIDE_W];
+    add(box(...bd, mat.coping,
+            f.axis==='z' ? 0 : f.sign*(HW + M(D.cavity/2)), M(D.rowBase + 7.5),
+            f.axis==='z' ? f.sign*(HL + M(D.cavity/2)) : 0), 'clad', 0, off);
+  });
+
+  // ── coping cap around the parapet top
+  const cy = M(D.parapet + D.coping.t/2);
+  add(box(GABLE_W + 20, D.coping.t, D.coping.w, mat.coping, 0, cy, CLADZ - M(D.coping.w/2 - 10)), 'clad', 900);
+  add(box(GABLE_W + 20, D.coping.t, D.coping.w, mat.coping, 0, cy, -CLADZ + M(D.coping.w/2 - 10)), 'clad', 900);
+  [1,-1].forEach(sx=> add(box(D.coping.w, D.coping.t, SIDE_W, mat.coping,
+                              sx*(CLADX - M(D.coping.w/2 - 10)), cy, 0), 'clad', 900));
+  const nG = gableRun.filter(p=>!p.closer).length, nS = sideRun.filter(p=>!p.closer).length;
+  const set = (id,v)=> document.getElementById(id).textContent = v;
+  set('mPanels', panelCount + ' pieces (' + cutCount + ' cut at the glazing head)');
+  set('mGable', nG + ' × 600 + 2 × ' + Math.round(gableRun[0].w*10)/10 + ' closer');
+  set('mSide',  nS + ' × 600 + 2 × ' + Math.round(sideRun[0].w*10)/10 + ' closer');
+  set('mRows', ROWS.map(r=>Math.round(r.h)).join(' + ') + ' mm  (±0 → +' + B(D.parapet) + ')');
+  set('mSlatW', Math.round(SLATW) + ' × ' + D.clear + ' mm (core)');
+  set('mSlatN', D.slat.pitch.toFixed(1) + ' mm × ' + D.slat.n);
+  set('mSolTop', '+' + B(SOLAR_TOP) + ' mm');
+  set('mSolHide', SOLAR_HIDE + ' mm below parapet');
+  set('mHeadOver', HEAD_OVER + ' mm above 2 × 1 200');
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════
+   9. STAGE 7 — LARCH SLAT FEATURE PANEL
+   ═══════════════════════════════════════════════════════════════════════ */
+(function slats(){
+  const sf = GSEQ.find(s=>s.type==='slat');
+  const x0 = sf.x0, S = D.slat;
+  [1,-1].forEach(sz=>{
+    const z = sz*(HL + M(S.d/2));          // mounted on the wall face, 40 mm behind the cladding
+    for(let i=0;i<S.n;i++){
+      const x = M(x0 + S.pitch/2 + i*S.pitch);
+      add(box(S.w, D.glazH, S.d, mat.wood, x, M(D.glazH/2), z), 'slat', i,
+          new THREE.Vector3(0,0,sz*.35));
+    }
+  });
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════
+   10. STAGE 8 — HIDDEN SOLAR FIELD
+   ═══════════════════════════════════════════════════════════════════════ */
+(function solar(){
+  const S = D.sol, tilt = S.tilt*Math.PI/180;
+  const gapX = 140, gapZ = 260;
+  const totW = S.cols*S.w + (S.cols-1)*gapX;
+  const totD = S.rows*S.d + (S.rows-1)*gapZ;
+  let k = 0;
+  for(let r=0;r<S.rows;r++){
+    for(let c=0;c<S.cols;c++){
+      const x = -M(totW/2) + M(S.w/2 + c*(S.w + gapX));
+      const z = -M(totD/2) + M(S.d/2 + r*(S.d + gapZ));
+      const g = new THREE.Group();
+      const pan = box(S.w, S.t, S.d, mat.solar, 0, 0, 0);
+      const fr  = box(S.w+30, S.t+8, S.d+30, mat.solarFr, 0, -M(6), 0);
+      g.add(fr); g.add(pan);
+      g.rotation.x = -tilt;
+      g.position.set(x, M(D.roofFin + S.rail + S.d*Math.sin(tilt)/2 + 30), z);
+      add(g, 'solar', k++, new THREE.Vector3(0, .9, 0));
+      // mounting rails
+      [-1,1].forEach(s=> add(box(60, S.rail, S.d*0.9, mat.solarFr, x + s*M(S.w/2 - 200),
+                                 M(D.roofFin + S.rail/2), z), 'solar', k, new THREE.Vector3(0,.9,0)));
+    }
+  }
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════
+   11. STAGE 9 — SITE / LANDSCAPE
+   ═══════════════════════════════════════════════════════════════════════ */
+(function site(){
+  const G = new THREE.Group();
+  const grd = new THREE.Mesh(new THREE.PlaneGeometry(200,200), mat.soil);
+  grd.rotation.x = -Math.PI/2; grd.position.y = M(-D.plinth) - .002; grd.receiveShadow = true; G.add(grd);
+
+  // travertine terrace in front of the glazed facade
+  const slab = 0.92, gy = M(-D.plinth) + .01;
+  for(let i=-5;i<=5;i++){
+    for(let j=0;j<4;j++){
+      const t = new THREE.Mesh(new THREE.BoxGeometry(slab-.018, .05, slab-.018), mat.paving);
+      t.position.set(i*slab, gy, HL + .62 + j*slab);
+      t.receiveShadow = true; G.add(t);
+    }
+  }
+  // side terrace strip
+  for(let j=-2;j<=2;j++) for(let i=0;i<2;i++){
+    const t = new THREE.Mesh(new THREE.BoxGeometry(slab-.018,.05,slab-.018), mat.paving);
+    t.position.set(HW + .62 + i*slab, gy, j*slab); t.receiveShadow = true; G.add(t);
+  }
+
+  // gravel bed
+  const gravel = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(.04,0), mat.gravel, 1400);
+  const dummy = new THREE.Object3D(); let gi = 0;
+  for(let i=0;i<1400;i++){
+    const a = Math.random()*Math.PI*2, rr = 9 + Math.random()*11;
+    const x = Math.cos(a)*rr, z = Math.sin(a)*rr*0.8 + 5;
+    if(Math.abs(x) < HW+1.2 && Math.abs(z) < HL+1.2) continue;
+    dummy.position.set(x, gy + .02, z);
+    dummy.rotation.set(Math.random()*3, Math.random()*3, Math.random()*3);
+    dummy.scale.setScalar(.5 + Math.random()*.8);
+    dummy.updateMatrix(); gravel.setMatrixAt(gi++, dummy.matrix);
+  }
+  gravel.count = gi; gravel.receiveShadow = true; G.add(gravel);
+
+  // planting
+  function clump(x, z, kind){
+    const g = new THREE.Group();
+    if(kind === 'lav'){
+      for(let i=0;i<16;i++){
+        const s = new THREE.Mesh(new THREE.ConeGeometry(.035, .55, 5), mat.lav);
+        s.position.set((Math.random()-.5)*.8, .3, (Math.random()-.5)*.8);
+        s.rotation.z = (Math.random()-.5)*.35; s.castShadow = true; g.add(s);
+      }
+      const b = new THREE.Mesh(new THREE.SphereGeometry(.42, 10, 7), mat.leaf);
+      b.scale.y = .5; b.position.y = .16; b.castShadow = true; g.add(b);
+    } else if(kind === 'grass'){
+      for(let i=0;i<22;i++){
+        const s = new THREE.Mesh(new THREE.ConeGeometry(.03, .9 + Math.random()*.4, 4), mat.grass);
+        s.position.set((Math.random()-.5)*.7, .5, (Math.random()-.5)*.7);
+        s.rotation.z = (Math.random()-.5)*.5; s.rotation.x = (Math.random()-.5)*.4;
+        s.castShadow = true; g.add(s);
+      }
+    } else {
+      const b = new THREE.Mesh(new THREE.SphereGeometry(.55, 12, 9), mat.leaf);
+      b.scale.set(1,.72,1); b.position.y = .38; b.castShadow = true; g.add(b);
+    }
+    g.position.set(x, gy, z); return g;
+  }
+  const spots = [[-6.6,5.6,'lav'],[-5.2,6.9,'lav'],[-3.6,6.2,'grass'],[-2.0,7.4,'lav'],
+                 [-0.4,6.6,'shrub'],[1.4,7.6,'grass'],[3.0,6.4,'lav'],[4.6,7.2,'shrub'],
+                 [6.2,6.0,'grass'],[7.6,4.4,'lav'],[-7.4,3.0,'shrub'],[-7.8,0.5,'grass'],
+                 [7.9,1.2,'grass'],[8.2,-2.0,'lav'],[-8.0,-2.6,'shrub'],[2.2,8.8,'lav'],
+                 [-4.4,8.6,'grass'],[5.6,8.9,'lav']];
+  spots.forEach(([x,z,k])=> G.add(clump(x,z,k)));
+
+  // olive trees
+  function tree(x, z, s){
+    const g = new THREE.Group();
+    const tr = new THREE.Mesh(new THREE.CylinderGeometry(.10*s, .17*s, 1.5*s, 8), mat.trunk);
+    tr.position.y = .75*s; tr.castShadow = true; g.add(tr);
+    for(let i=0;i<7;i++){
+      const c = new THREE.Mesh(new THREE.SphereGeometry((.62 + Math.random()*.35)*s, 11, 8), mat.olive);
+      c.position.set((Math.random()-.5)*1.5*s, (1.7 + Math.random()*1.0)*s, (Math.random()-.5)*1.5*s);
+      c.castShadow = true; g.add(c);
+    }
+    g.position.set(x, gy, z); return g;
+  }
+  G.add(tree(-10.8, 1.6, 1.20));
+  G.add(tree(12.4, -6.2, 1.05));
+  G.add(tree(-11.4, -6.8, 1.15));
+  G.add(tree(-13.2, 7.4, .95));
+
+  add(G, 'site', 0);
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════
+   12. DIMENSION OVERLAY
+   ═══════════════════════════════════════════════════════════════════════ */
+const dimGroup = new THREE.Group(); dimGroup.visible = false; scene.add(dimGroup);
+function label(text, pos, scale = 1){
+  const c = document.createElement('canvas'); const pad = 16;
+  const ctx = c.getContext('2d');
+  ctx.font = '600 44px system-ui, sans-serif';
+  const w = ctx.measureText(text).width;
+  c.width = Math.ceil(w + pad*2); c.height = 74;
+  const g = c.getContext('2d');
+  g.fillStyle = 'rgba(14,18,24,.88)';
+  g.beginPath(); g.roundRect(0,0,c.width,c.height,12); g.fill();
+  g.strokeStyle = 'rgba(200,151,63,.85)'; g.lineWidth = 2.5;
+  g.beginPath(); g.roundRect(1.5,1.5,c.width-3,c.height-3,12); g.stroke();
+  g.font = '600 44px system-ui, sans-serif'; g.fillStyle = '#ffe6b8';
+  g.textBaseline = 'middle'; g.fillText(text, pad, c.height/2 + 2);
+  const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({map:tx, depthTest:false, transparent:true}));
+  sp.scale.set(c.width/74 * .30 * scale, .30 * scale, 1);
+  sp.position.copy(pos); sp.renderOrder = 999;
+  dimGroup.add(sp); return sp;
+}
+const dimMat = new THREE.LineBasicMaterial({color:0xc8973f, depthTest:false, transparent:true, opacity:.95});
+function dimLine(a, b, text, off = new THREE.Vector3(0,0,0), scale = 1){
+  const A = a.clone().add(off), B = b.clone().add(off);
+  const geo = new THREE.BufferGeometry().setFromPoints([a, A, B, b]);
+  const l = new THREE.Line(geo, dimMat); l.renderOrder = 998; dimGroup.add(l);
+  const tick = new THREE.BufferGeometry().setFromPoints([A, B]);
+  const l2 = new THREE.Line(tick, dimMat); l2.renderOrder = 998; dimGroup.add(l2);
+  [A,B].forEach(p=>{
+    const c = new THREE.Mesh(new THREE.SphereGeometry(.035, 8, 6),
+                             new THREE.MeshBasicMaterial({color:0xc8973f, depthTest:false}));
+    c.position.copy(p); c.renderOrder = 998; dimGroup.add(c);
+  });
+  label(text, A.clone().lerp(B, .5).add(new THREE.Vector3(0, .16*scale, 0)), scale);
+}
+(function dims(){
+  const zf = CLADZ + .01, base = M(-D.ffl);          // drawing datum: underside of the floor
+  // overall — the three numbers off the drawing
+  dimLine(new THREE.Vector3(-HW, base, zf), new THREE.Vector3(HW, base, zf),
+          '7 449 mm structure (7 589 over cladding)', new THREE.Vector3(0,-.35,1.5));
+  dimLine(new THREE.Vector3(HW, base, CLADZ), new THREE.Vector3(HW, base, -CLADZ),
+          '6 058 mm (6 198 over cladding)', new THREE.Vector3(1.5,-.35,0));
+  dimLine(new THREE.Vector3(-CLADX, base, zf), new THREE.Vector3(-CLADX, M(D.roofFin), zf),
+          '2 706 mm construction height', new THREE.Vector3(-1.1,0,0));
+  dimLine(new THREE.Vector3(-CLADX, base, zf), new THREE.Vector3(-CLADX, M(D.parapet), zf),
+          '3 600 mm facade top (3 × 1 200)', new THREE.Vector3(-2.3,0,0), .85);
+  dimLine(new THREE.Vector3(-CLADX, M(D.roofFin), zf), new THREE.Vector3(-CLADX, M(D.parapet), zf),
+          (D.parapet - D.roofFin) + ' mm upstand above the roof', new THREE.Vector3(-3.4,0,0), .75);
+  dimLine(new THREE.Vector3(CLADX, 0, zf), new THREE.Vector3(CLADX, M(D.glazH), zf),
+          '2 550 mm clear height — all glazing', new THREE.Vector3(1.1,0,0));
+
+  /* THE point of this revision: the openings are TALLER than two panel courses.
+     Course 2/3 joint at +2 400; the glazing head at +2 626 on the drawing datum. */
+  dimLine(new THREE.Vector3(CLADX, M(D.rowBase + 2*D.pnlH), zf),
+          new THREE.Vector3(CLADX, M(D.glazH), zf),
+          HEAD_OVER + ' mm — glazing head ABOVE 2 courses', new THREE.Vector3(2.4,0,0), .8);
+
+  // panel module, read on the side wall where all three courses exist
+  const sx = CLADX + .01, sp = sideRun[2].c, sp1 = sideRun[3].c;
+  ROWS.forEach((row, r)=>{
+    dimLine(new THREE.Vector3(sx, M(row.y0), M(sp)), new THREE.Vector3(sx, M(row.y0 + row.h), M(sp)),
+            '1 200 mm panel (course ' + (r+1) + ')', new THREE.Vector3(1.0 + r*0.05, 0, 0), .75);
+  });
+  dimLine(new THREE.Vector3(sx, M(D.parapet), M(sp - D.pnlW/2)),
+          new THREE.Vector3(sx, M(D.parapet), M(sp + D.pnlW/2)),
+          '600 mm panel width · 30 mm thick', new THREE.Vector3(0,.35,0), .8);
+
+  // openings, straight off the drawing
+  const seq = GSEQ, at = y => y;
+  const jb = seq.find(s=>s.type==='jamb'), l1 = seq.filter(s=>s.type==='lite')[0],
+        l2 = seq.filter(s=>s.type==='lite')[1], dr = seq.find(s=>s.type==='door'),
+        ds = seq.find(s=>s.type==='dstile'), sl = seq.find(s=>s.type==='slat');
+  dimLine(new THREE.Vector3(M(l1.x0), M(D.glazH), zf), new THREE.Vector3(M(l1.x1), M(D.glazH), zf),
+          '837.9 mm VIG lite', new THREE.Vector3(0,.55,0), .8);
+  dimLine(new THREE.Vector3(M(l2.x0), M(D.glazH), zf), new THREE.Vector3(M(l2.x1), M(D.glazH), zf),
+          '819.1 mm VIG lite', new THREE.Vector3(0,1.0,0), .8);
+  dimLine(new THREE.Vector3(M(dr.x0), M(D.glazH), zf), new THREE.Vector3(M(dr.x1), M(D.glazH), zf),
+          '798 mm door glass', new THREE.Vector3(0,1.45,0), .8);
+  dimLine(new THREE.Vector3(M(dr.x0), M(D.doorRail), zf),
+          new THREE.Vector3(M(dr.x0), M(D.doorRail + D.doorGlazH), zf),
+          '2 314 mm door glass', new THREE.Vector3(-.55,0,0), .75);
+  dimLine(new THREE.Vector3(M(sl.x0), M(D.glazH), zf), new THREE.Vector3(M(sl.x1), M(D.glazH), zf),
+          '1 987 mm larch panel · ' + D.slat.n + ' × ' + D.slat.w + ' @ ' + D.slat.pitch.toFixed(1),
+          new THREE.Vector3(0,.55,0), .8);
+  const wing = GSEQ.filter(s=> s.x1 <= sl.x0 + 1);
+  dimLine(new THREE.Vector3(M(wing[0].x0), M(400), zf),
+          new THREE.Vector3(M(wing[wing.length-1].x1), M(400), zf),
+          '2 731 mm group (273.10): 45 · 837.9 · 35 · 819.1 · 98 · 798 · 98', new THREE.Vector3(0,-.75,0), .7);
+  // solar concealment
+  dimLine(new THREE.Vector3(CLADX - .4, M(SOLAR_TOP), 0), new THREE.Vector3(CLADX - .4, M(D.parapet), 0),
+          SOLAR_HIDE + ' mm solar concealment', new THREE.Vector3(2.4,0,0), .8);
+  label('30 mm PU stone + 40 mm cavity = 70 mm build-out', new THREE.Vector3(CLADX + 1.0, M(1500), HL*.4), .75);
+  label('76 mm FRP sandwich (3 + 70 + 3)', new THREE.Vector3(-CLADX - 1.0, M(900), -HL*.3), .75);
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════
+   13. SEQUENCE PLAYBACK
+   ═══════════════════════════════════════════════════════════════════════ */
+const N = STAGES.length;
+const slotMax = {};
+parts.forEach(p=>{ slotMax[p.stage] = Math.max(slotMax[p.stage] ?? 0, p.slot); });
+const smooth = t => t<=0 ? 0 : t>=1 ? 1 : t*t*(3-2*t);
+
+let progress = N;                 // 0 … N
+function applyProgress(){
+  parts.forEach(p=>{
+    const local = progress - p.stage;                    // <0 not started, >1 done
+    const span = 0.62, spread = 0.38;
+    const s0 = slotMax[p.stage] ? (p.slot/slotMax[p.stage])*spread : 0;
+    const t = smooth((local - s0)/span);
+    p.mesh.visible = t > 0.001;
+    if(p.from){
+      p.mesh.position.lerpVectors(p.home.clone().add(p.from), p.home, t);
+    }
+    if(t < 1 && t > 0){ p.mesh.scale.multiplyScalar(1); }
+  });
+  const pctEl = document.getElementById('pct');
+  pctEl.textContent = Math.round(progress/N*100) + '%';
+  const si = Math.min(N-1, Math.max(0, Math.ceil(progress) - 1));
+  document.getElementById('stageText').innerHTML = STAGES[si].text;
+  [...document.querySelectorAll('#stageBtns button')].forEach((b,i)=> b.classList.toggle('on', i === si));
+}
+
+/* stage buttons */
+const sb = document.getElementById('stageBtns');
+STAGES.forEach((s,i)=>{
+  const b = document.createElement('button');
+  b.innerHTML = s.name;
+  b.onclick = ()=>{ playing = false; document.getElementById('play').classList.remove('on');
+                    setProgress(i+1); };
+  sb.appendChild(b);
+});
+const slider = document.getElementById('progress');
+function setProgress(v){ progress = Math.max(0, Math.min(N, v)); slider.value = progress/N*1000; applyProgress(); }
+slider.oninput = ()=> { playing = false; document.getElementById('play').classList.remove('on');
+                        progress = slider.value/1000*N; applyProgress(); };
+
+/* ═══════════════════════════════════════════════════════════════════════
+   14. VIEWS / CONTROLS
+   ═══════════════════════════════════════════════════════════════════════ */
+const VIEWS = {
+  hero:   {pos:[11.8, 2.10, 12.8], tgt:[-0.6, 1.60, 0.4], fov:35},
+  front:  {pos:[0.5, 1.75, 15.2],  tgt:[0.0, 1.60, 0.0],  fov:34},
+  side:   {pos:[18.6, 1.70, 0.8],  tgt:[0.0, 1.85, 0.0],  fov:31},
+  roof:   {pos:[11.0, 14.5, 12.5], tgt:[0.0, 2.60, 0.0],  fov:36},
+  detail: {pos:[4.6, 1.95, 7.2],   tgt:[1.2, 1.90, 3.1],  fov:24}
+};
+function setView(k){
+  const v = VIEWS[k];
+  camera.position.set(...v.pos); controls.target.set(...v.tgt);
+  camera.fov = v.fov; camera.updateProjectionMatrix(); controls.update();
+  [...document.querySelectorAll('[data-view]')].forEach(b=> b.classList.toggle('on', b.dataset.view === k));
+}
+document.querySelectorAll('[data-view]').forEach(b=> b.onclick = ()=> setView(b.dataset.view));
+
+let playing = false, orbiting = false;
+document.getElementById('play').onclick = e=>{
+  playing = !playing; e.target.classList.toggle('on', playing);
+  if(playing && progress >= N - 0.001) setProgress(0);
+};
+document.getElementById('orbit').onclick = e=>{ orbiting = !orbiting; e.target.classList.toggle('on', orbiting); };
+document.getElementById('dims').onclick = e=>{ dimGroup.visible = !dimGroup.visible; e.target.classList.toggle('on', dimGroup.visible); };
+
+/* capture hooks for deterministic renders */
+window.SH = {
+  view: setView,
+  stage: i => setProgress(i),
+  dims: on => { dimGroup.visible = !!on; },
+  clean: on => document.body.classList.toggle('clean', !!on),
+  ready: false
+};
+
+/* ═══════════════════════════════════════════════════════════════════════
+   15. LOOP
+   ═══════════════════════════════════════════════════════════════════════ */
+addEventListener('resize', ()=>{
+  camera.aspect = host.clientWidth/host.clientHeight; camera.updateProjectionMatrix();
+  renderer.setSize(host.clientWidth, host.clientHeight);
+});
+let last = performance.now();
+function tick(now){
+  const dt = Math.min(.05, (now - last)/1000); last = now;
+  if(playing){
+    progress += dt * 0.62;
+    if(progress >= N){ progress = N; playing = false; document.getElementById('play').classList.remove('on'); }
+    slider.value = progress/N*1000; applyProgress();
+  }
+  if(orbiting){
+    const a = dt * 0.11, c = camera.position, t = controls.target;
+    const dx = c.x - t.x, dz = c.z - t.z;
+    camera.position.x = t.x + dx*Math.cos(a) - dz*Math.sin(a);
+    camera.position.z = t.z + dx*Math.sin(a) + dz*Math.cos(a);
+  }
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+setView('hero');
+applyProgress();
+
+/* deterministic capture via query string: ?view=side&stage=6&dims=1&clean=1 */
+(function fromQuery(){
+  const q = new URLSearchParams(location.search);
+  if(q.has('view')) setView(q.get('view'));
+  if(q.has('stage')) setProgress(parseFloat(q.get('stage')));
+  if(q.has('dims')) { dimGroup.visible = q.get('dims') !== '0'; document.getElementById('dims').classList.toggle('on', dimGroup.visible); }
+  if(q.has('clean')) document.body.classList.toggle('clean', q.get('clean') !== '0');
+  if(q.has('fov')){ camera.fov = parseFloat(q.get('fov')); camera.updateProjectionMatrix(); }
+})();
+
+document.getElementById('load').remove();
+window.SH.ready = true;
+if(CAPTURE){
+  // keep painting a fresh frame every rAF so the headless screenshot always
+  // grabs a committed buffer, regardless of when virtual-time fires it
+  (function capLoop(){
+    controls.update();
+    renderer.render(scene, camera);
+    requestAnimationFrame(capLoop);
+  })();
+} else {
+  requestAnimationFrame(tick);
+}
+</script>
+</body>
+</html>
